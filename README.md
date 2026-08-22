@@ -1,6 +1,8 @@
 # RooQuiz MCP Server
 
 [![smithery badge](https://smithery.ai/badge/rooquiz/rooquiz-mcp)](https://smithery.ai/servers/rooquiz/rooquiz-mcp)
+[![Install in VS Code](https://img.shields.io/badge/VS_Code-Install_Server-0098FF?style=flat-square&logo=visualstudiocode&logoColor=white)](https://insiders.vscode.dev/redirect/mcp/install?name=rooquiz&config=%7B%22type%22%3A%22http%22%2C%22url%22%3A%22https%3A%2F%2Fpayload.rooquiz.com%2Fapi%2Fmcp%22%7D)
+[![Install in Cursor](https://img.shields.io/badge/Cursor-Install_Server-000000?style=flat-square&logo=cursor&logoColor=white)](https://cursor.com/install-mcp?name=rooquiz&config=eyJ1cmwiOiJodHRwczovL3BheWxvYWQucm9vcXVpei5jb20vYXBpL21jcCJ9)
 
 Remote [MCP](https://modelcontextprotocol.io) server for [RooQuiz](https://rooquiz.com) — a lightweight assessment platform for lead capture and viral sharing. Build quizzes with AI-assisted authoring, capture leads from results pages, and analyze funnel conversion — straight from Claude, ChatGPT, Cursor, or any MCP client.
 
@@ -9,6 +11,8 @@ Remote [MCP](https://modelcontextprotocol.io) server for [RooQuiz](https://rooqu
 - **Registry name:** [`com.rooquiz/rooquiz-mcp`](https://registry.modelcontextprotocol.io/v0/servers?search=com.rooquiz/rooquiz-mcp)
 
 ## Connect
+
+One-click: [VS Code](https://insiders.vscode.dev/redirect/mcp/install?name=rooquiz&config=%7B%22type%22%3A%22http%22%2C%22url%22%3A%22https%3A%2F%2Fpayload.rooquiz.com%2Fapi%2Fmcp%22%7D) · [VS Code Insiders](https://insiders.vscode.dev/redirect/mcp/install?name=rooquiz&config=%7B%22type%22%3A%22http%22%2C%22url%22%3A%22https%3A%2F%2Fpayload.rooquiz.com%2Fapi%2Fmcp%22%7D&quality=insiders) · [Cursor](https://cursor.com/install-mcp?name=rooquiz&config=eyJ1cmwiOiJodHRwczovL3BheWxvYWQucm9vcXVpei5jb20vYXBpL21jcCJ9)
 
 **Claude Code**
 
@@ -24,6 +28,19 @@ claude mcp add --transport http rooquiz https://payload.rooquiz.com/api/mcp
 {
   "mcpServers": {
     "rooquiz": {
+      "url": "https://payload.rooquiz.com/api/mcp"
+    }
+  }
+}
+```
+
+**VS Code / GitHub Copilot** (`.vscode/mcp.json`)
+
+```json
+{
+  "servers": {
+    "rooquiz": {
+      "type": "http",
       "url": "https://payload.rooquiz.com/api/mcp"
     }
   }
