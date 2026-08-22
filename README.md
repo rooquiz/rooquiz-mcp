@@ -1,5 +1,7 @@
 # RooQuiz MCP Server
 
+[![smithery badge](https://smithery.ai/badge/rooquiz/rooquiz-mcp)](https://smithery.ai/servers/rooquiz/rooquiz-mcp)
+
 Remote [MCP](https://modelcontextprotocol.io) server for [RooQuiz](https://rooquiz.com) — a lightweight assessment platform for lead capture and viral sharing. Build quizzes with AI-assisted authoring, capture leads from results pages, and analyze funnel conversion — straight from Claude, ChatGPT, Cursor, or any MCP client.
 
 - **Endpoint:** `https://payload.rooquiz.com/api/mcp` (Streamable HTTP)
