@@ -3,7 +3,7 @@
 Companion doc: [`PUBLISHING.md`](PUBLISHING.md) — step-by-step for the official Registry and Glama.
 This file tracks **status per channel** and holds **ready-to-paste submission copy**.
 
-Last updated: 2026-08-22
+Last updated: 2026-08-23
 
 ## Status
 
@@ -12,10 +12,11 @@ Last updated: 2026-08-22
 | Official MCP Registry | Metadata source | ✅ active (published 2026-08-20 as `com.rooquiz/rooquiz-mcp`) | Re-publish on version changes |
 | VS Code / Cursor one-click install | Client | ✅ in README (2026-08-22) | Recompute links from the formula below if the endpoint changes |
 | Smithery | Aggregator | 🟡 Badge is up; listing ownership unconfirmed | Sign in to smithery.ai and confirm the listing is claimed |
-| Glama connector | Aggregator | ⬜ Not submitted | Follow section A of PUBLISHING.md |
+| Glama **connector** | Aggregator | 🟡 Auto-ingested from the registry, but **Unhealthy** (last tested 2026-08-23 12:36) | Mail support@glama.ai a throwaway-team PAT; claim via `/.well-known/glama.json`. Cosmetic — no badge here |
+| Glama **servers directory** | Aggregator | ⬜ Not submitted (`/mcp/servers/rooquiz/rooquiz-mcp` 404) | Required for the score badge — submit the repo, paste the Dockerfile, set `ROOQUIZ_TOKEN`. §A2 of PUBLISHING.md |
 | mcp.so | Aggregator | ⬜ Not submitted (`/server/rooquiz-mcp` still 404 as of 2026-08-22) | Open a GitHub issue; copy below |
 | PulseMCP | Aggregator | ⬜ Not indexed (API query for `rooquiz` returned 0 on 2026-08-22) | The official registry entry already satisfies its prerequisite; wait for ingest, submit manually if still missing in two weeks |
-| awesome-mcp-servers | GitHub list | ⬜ PR not opened | Entry copy below |
+| awesome-mcp-servers | GitHub list | 🟡 [PR #12649](https://github.com/punkpeye/awesome-mcp-servers/pull/12649) open, labelled `missing-glama` | Add the score badge to the entry once the Glama servers listing is graded |
 | Claude Connectors Directory | Client directory | 🔴 Blocked | Needs a Team/Enterprise org plus the prerequisites below |
 | ChatGPT Apps Directory | Client directory | 🔴 Blocked | Needs identity + domain verification plus the prerequisites below |
 
@@ -96,11 +97,25 @@ Category suggestion: Marketing / Lead generation / Forms & surveys.
 Target section: `### 🎯 Marketing`, inserted at the `r` position in that section's alphabetical order by GitHub handle.
 Legend icons (see that README's Legend): 🎖️ official implementation, 📇 TypeScript, ☁️ cloud service.
 
-**Entry**
+**Entry** — the score badge goes right after the repo link, before the emoji. The bot's
+comment says "after the server description", but all ~2000 badged entries in that README use
+this position, and `check-glama.yml` only string-matches the line.
 
 ```markdown
-- [rooquiz/rooquiz-mcp](https://github.com/rooquiz/rooquiz-mcp) 🎖️ 📇 ☁️ - Build and run assessments on [RooQuiz](https://rooquiz.com) — knowledge quizzes, scored quizzes, and outcome ("which X are you") quizzes with AI-assisted authoring and mirrored translations — then work the funnel: leads captured from results pages (tag, assign, comment), respondents, submissions, bookings, and conversion stats. Hosted Streamable HTTP endpoint at `https://payload.rooquiz.com/api/mcp`, OAuth 2.1 with dynamic client registration, no API key.
+- [rooquiz/rooquiz-mcp](https://github.com/rooquiz/rooquiz-mcp) [![rooquiz/rooquiz-mcp MCP server](https://glama.ai/mcp/servers/rooquiz/rooquiz-mcp/badges/score.svg)](https://glama.ai/mcp/servers/rooquiz/rooquiz-mcp) 🎖️ 📇 ☁️ - Build and run assessments on [RooQuiz](https://rooquiz.com) — knowledge quizzes, scored quizzes, and outcome ("which X are you") quizzes with AI-assisted authoring and mirrored translations — then work the funnel: leads captured from results pages (tag, assign, comment), respondents, submissions, bookings, and conversion stats. Hosted Streamable HTTP endpoint at `https://payload.rooquiz.com/api/mcp`, OAuth 2.1 with dynamic client registration, no API key.
 ```
+
+**Do not push the badge before the Glama servers listing exists** — it renders as a broken
+image, and punkpeye (who maintains the list) is Glama's author. What the CI actually gates on:
+
+```js
+// .github/workflows/check-glama.yml
+const hasGlama = newAddedLines.some(line =>
+  line.includes('glama.ai/mcp/servers/') && line.includes('/badges/score.svg'))
+```
+
+That flips `missing-glama` → `has-glama` on the string alone; the follow-up bot comment then
+asks a human to confirm the server actually has a quality score.
 
 **Opening the PR**
 
@@ -115,9 +130,14 @@ gh pr create --title "Add RooQuiz MCP server" \
   --body "Adds RooQuiz — a hosted remote MCP server for quiz building and lead capture. Listed on the official MCP registry as com.rooquiz/rooquiz-mcp."
 ```
 
-### Glama connector
+### Glama
 
-Form fields are in section A of [`PUBLISHING.md`](PUBLISHING.md). Key point: **leave test credentials blank** — the server supports DCR, so Glama registers its own client for the health check. Only healthy connectors get indexed.
+Both channels are covered in section A of [`PUBLISHING.md`](PUBLISHING.md). Key point:
+**DCR is not enough for the health check** — it yields a `client_id`, never an access token,
+because our authorization server only supports `authorization_code`. The unblock is a PAT
+bound to a throwaway empty team, handed to Glama as an env var (servers directory) or by mail
+(connector). Opening up anonymous discovery was considered and rejected — Codex has no lazy
+401 trigger, so it would show a connected server whose every tool call fails.
 
 ### PulseMCP
 

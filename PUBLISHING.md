@@ -1,6 +1,6 @@
 # RooQuiz MCP Publishing Runbook
 
-Two parallel tracks: **A. Glama Connector** (remote connector directory) and **B. the official MCP Registry** (publish once; Glama and other aggregators pull metadata from there). Do B first, then A.
+Two parallel tracks: **A. Glama** (connector + servers directory) and **B. the official MCP Registry** (publish once; Glama and other aggregators pull metadata from there). Do B first, then A.
 
 Server facts, all verified in production on 2026-08-20:
 
@@ -9,7 +9,7 @@ Server facts, all verified in production on 2026-08-20:
 | MCP endpoint | `https://payload.rooquiz.com/api/mcp` (Streamable HTTP, stateless) |
 | Auth | OAuth 2.1: authorization code + PKCE, with dynamic client registration (RFC 7591) |
 | Discovery metadata | `/.well-known/oauth-protected-resource/api/mcp` and `/.well-known/oauth-authorization-server/api/mcp` both respond correctly |
-| Unauthenticated behavior | 401 + `WWW-Authenticate: Bearer resource_metadata=...` (RFC 9728 discovery chain) |
+| Unauthenticated behavior | Every method, `initialize` included, returns 401 + `WWW-Authenticate: Bearer resource_metadata=...` (RFC 9728 discovery chain) |
 | serverInfo | `rooquiz-mcp` / `1.0.0` — differs from the registry name `com.rooquiz/rooquiz-mcp`; aligning them is only a spec recommendation and does not affect listing or health checks |
 
 ---
@@ -78,28 +78,101 @@ This needs a static route added to rooquiz-web, then `mcp-publisher login http -
 
 ---
 
-## A. Submit the Glama connector
+## A. Glama
 
-Glama routes already-deployed remote MCP servers through its connectors channel, which does not require open source.
+Glama has **two separate channels**, and they are not interchangeable:
 
-Submission checklist:
+| Channel | URL shape | Source | Score badge? |
+| --- | --- | --- | --- |
+| Connectors | `/mcp/connectors/<registry-name>` | Auto-ingested from the official MCP Registry | **No** — `…/badges/score.svg` 404s |
+| Servers | `/mcp/servers/<gh-owner>/<gh-repo>` | Submitted GitHub repo, built and introspected by Glama | **Yes** |
 
-1. Sign in to [glama.ai](https://glama.ai) with a GitHub account that represents the rooquiz org — the submitting account owns the listing.
-2. Go to [glama.ai/mcp/connectors](https://glama.ai/mcp/connectors) → **Add MCP Server → Connector**.
-3. Fill in the form:
-   - **Name**: `RooQuiz`
-   - **Endpoint**: `https://payload.rooquiz.com/api/mcp`
-   - **Description** (can run longer than `server.json`; suggested text):
-     > Create and manage quizzes, question banks, and translations; capture and manage leads, respondents, and bookings; and pull stats and funnel analytics on RooQuiz — a lightweight assessment platform for lead capture and viral sharing.
-   - **Test credentials: leave blank.** The server supports OAuth 2.1 dynamic client registration, so Glama registers its own client for the health check.
-4. Wait for the automated health check. **Only healthy connectors get indexed**; an unhealthy one stays stuck in pending.
+`punkpeye/awesome-mcp-servers` requires the **servers** badge, so the connector alone does
+not satisfy it. Do both.
 
-On [`glama.json`](glama.json): the connector channel does not use it (ownership follows the submitting account). Its purpose is claiming a listing in Glama's **open-source servers directory** — this repo lives under an org, and org repos cannot be auto-associated by GitHub login, so the root `glama.json` (with GitHub usernames in `maintainers`) is the only hook. After changing it you must re-run the Claim ownership flow on Glama for the change to be picked up.
+### The health-check prerequisite (applies to both channels)
+
+Glama's probe is unattended: it only does `initialize` → `notifications/initialized` →
+`tools/list`. Our authorization server advertises `authorization_code` + `refresh_token`
+only — **dynamic client registration gets Glama a `client_id` but never an access token**,
+because the authorization-code step needs a human to click. An earlier revision of this
+document said "leave test credentials blank, DCR is enough"; that was wrong, and it is why
+the connector sits at *Unhealthy*.
+
+So the probe needs a real token. **Opening up anonymous discovery was considered and
+rejected** — letting `initialize` succeed without a token makes interactive clients believe
+no sign-in is needed:
+
+- **Claude Code** reports `✔ Connected` instead of `! Needs authentication` (measured against
+  a stub). It recovers, because its MCP SDK triggers `auth()` on any 401, so the browser flow
+  just moves to the first `tools/call`.
+- **Codex** does not recover. Its docs are explicit: *"If no credential source resolves, Codex
+  can connect to the server without authentication. Run `codex mcp login <server-name>`
+  separately to start an MCP OAuth login."* There is no lazy 401 trigger — the user would see a
+  connected server with a full tool list where every call fails.
+
+Mint a token instead:
+
+1. Create a dedicated user and an **empty** team — the token is bound to one team and all
+   tools act within it, so a throwaway team means the probe can reach no real data.
+2. Issue a PAT for that team via the normal `createMcpToken` flow (`rqp_live_…`).
+3. Revoke and re-issue whenever you want; nothing downstream pins it.
+
+Rate limiting is 60 req/min per token, far above anything a probe does.
+
+### A1. Connector (already listed)
+
+The registry entry is auto-ingested — the listing already exists at
+[glama.ai/mcp/connectors/com.rooquiz/rooquiz-mcp](https://glama.ai/mcp/connectors/com.rooquiz/rooquiz-mcp).
+Nothing to submit, but it stays *Unhealthy* until Glama has credentials, and its form has no
+field for them. The connector page says to mail **support@glama.ai** with test credentials —
+send the throwaway-team PAT from above. This is cosmetic: connectors carry no score badge, so
+it does not unblock the awesome-mcp-servers PR.
+
+To **claim** it, serve this at `https://payload.rooquiz.com/.well-known/glama.json`:
+
+```json
+{
+  "$schema": "https://glama.ai/mcp/schemas/connector.json",
+  "maintainers": [{ "email": "<the email on your Glama account>" }]
+}
+```
+
+Glama detects it within a few minutes. Claiming unlocks editing the description, analytics,
+and health alerts.
+
+### A2. Servers directory (needed for the badge)
+
+1. Sign in to [glama.ai](https://glama.ai) with the GitHub account listed in
+   [`glama.json`](glama.json) `maintainers` (currently `reganfly`). Org repos cannot be
+   auto-associated by login, so that file is the ownership hook — after editing it you must
+   re-run the Claim ownership flow.
+2. [glama.ai/mcp/servers](https://glama.ai/mcp/servers) → **Add MCP Server**, repository
+   `https://github.com/rooquiz/rooquiz-mcp`.
+3. Glama does not read a Dockerfile from the repo — **paste the contents of
+   [`Dockerfile`](Dockerfile) into its form**. The image runs
+   [`bin/rooquiz-mcp.mjs`](bin/rooquiz-mcp.mjs), a dependency-free stdio↔HTTP bridge.
+4. Set **`ROOQUIZ_TOKEN`** in Glama's environment-variable field to the throwaway-team PAT.
+   Never bake it into the pasted Dockerfile — that text is part of the listing.
+5. Verify locally first — this is the exact handshake Glama runs:
+
+   ```bash
+   docker build -t rooquiz-mcp .
+   printf '%s\n' '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18"}}' \
+     | docker run -i --rm -e ROOQUIZ_TOKEN=rqp_live_… rooquiz-mcp
+   ```
+
+6. Once the listing is graded, the badge lives at
+   `https://glama.ai/mcp/servers/rooquiz/rooquiz-mcp/badges/score.svg`. Add it to the
+   awesome-mcp-servers PR (copy in [`LISTINGS.md`](LISTINGS.md)).
 
 Troubleshooting:
 
-- If it stays pending for a long time, first check whether Glama's probe is being blocked by rate limiting (`enforceRateLimits`, KV-backed). DCR registration plus `initialize` is low-frequency and should not trip it, but a 429 means an immediate unhealthy verdict.
-- Self-check the discovery chain (the three URLs in the table at the top): the 401 must carry `WWW-Authenticate`, and both well-known endpoints must be anonymously accessible.
+- A `429` from `enforceRateLimits` is an immediate unhealthy verdict (60 req/min per token).
+- A revoked or expired `ROOQUIZ_TOKEN` shows up as *Unhealthy*, not as an auth error. Re-run
+  the local docker handshake above before assuming Glama is at fault.
+- Self-check the discovery chain (the three URLs in the table at the top): the 401 must carry
+  `WWW-Authenticate`, and both well-known endpoints must be anonymously accessible.
 
 ---
 

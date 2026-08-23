@@ -1,0 +1,31 @@
+{
+  "name": "rooquiz-mcp",
+  "version": "1.0.0",
+  "description": "stdio bridge for the hosted RooQuiz MCP server (quizzes, leads, respondents, bookings).",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "rooquiz-mcp": "bin/rooquiz-mcp.mjs"
+  },
+  "files": [
+    "bin"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "homepage": "https://rooquiz.com",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rooquiz/rooquiz-mcp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/rooquiz/rooquiz-mcp/issues"
+  },
+  "keywords": [
+    "mcp",
+    "modelcontextprotocol",
+    "rooquiz",
+    "quiz",
+    "lead-generation"
+  ]
+}
