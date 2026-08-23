@@ -129,17 +129,27 @@ field for them. The connector page says to mail **support@glama.ai** with test c
 send the throwaway-team PAT from above. This is cosmetic: connectors carry no score badge, so
 it does not unblock the awesome-mcp-servers PR.
 
-To **claim** it, serve this at `https://payload.rooquiz.com/.well-known/glama.json`:
+**Claiming** is separate from health, and already implemented: rooquiz-payload serves
+`https://payload.rooquiz.com/.well-known/glama.json` from
+`src/app/.well-known/glama.json/route.ts`, returning
 
 ```json
 {
   "$schema": "https://glama.ai/mcp/schemas/connector.json",
-  "maintainers": [{ "email": "<the email on your Glama account>" }]
+  "maintainers": [{ "email": "rooquizteam@gmail.com" }]
 }
 ```
 
-Glama detects it within a few minutes. Claiming unlocks editing the description, analytics,
-and health alerts.
+Two things to get right:
+
+- It must sit on the **connector's** domain — `payload.rooquiz.com`, not `rooquiz.com`.
+- The email must match a real Glama account. **Sign up at glama.ai with
+  `rooquizteam@gmail.com` first**, or verification fails against an account that does not
+  exist. Changing the email means changing both sides together.
+
+Glama re-checks within a few minutes of the deploy. Claiming unlocks editing the listing
+description, usage analytics, and health alerts — it does **not** make the connector healthy;
+that still needs credentials.
 
 ### A2. Servers directory (needed for the badge)
 

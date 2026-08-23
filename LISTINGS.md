@@ -12,7 +12,7 @@ Last updated: 2026-08-23
 | Official MCP Registry | Metadata source | ✅ active (published 2026-08-20 as `com.rooquiz/rooquiz-mcp`) | Re-publish on version changes |
 | VS Code / Cursor one-click install | Client | ✅ in README (2026-08-22) | Recompute links from the formula below if the endpoint changes |
 | Smithery | Aggregator | 🟡 Badge is up; listing ownership unconfirmed | Sign in to smithery.ai and confirm the listing is claimed |
-| Glama **connector** | Aggregator | 🟡 Auto-ingested from the registry, but **Unhealthy** (last tested 2026-08-23 12:36) | Mail support@glama.ai a throwaway-team PAT; claim via `/.well-known/glama.json`. Cosmetic — no badge here |
+| Glama **connector** | Aggregator | 🟡 Auto-ingested from the registry, but **Unhealthy** (last tested 2026-08-23 12:36) | Claim route written (`rooquizteam@gmail.com`) — needs deploy + a Glama account on that email. Health still needs a PAT mailed to support@glama.ai. Cosmetic — no badge here |
 | Glama **servers directory** | Aggregator | ⬜ Not submitted (`/mcp/servers/rooquiz/rooquiz-mcp` 404) | Required for the score badge — submit the repo, paste the Dockerfile, set `ROOQUIZ_TOKEN`. §A2 of PUBLISHING.md |
 | mcp.so | Aggregator | ⬜ Not submitted (`/server/rooquiz-mcp` still 404 as of 2026-08-22) | Open a GitHub issue; copy below |
 | PulseMCP | Aggregator | ⬜ Not indexed (API query for `rooquiz` returned 0 on 2026-08-22) | The official registry entry already satisfies its prerequisite; wait for ingest, submit manually if still missing in two weeks |
