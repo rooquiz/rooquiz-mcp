@@ -58,10 +58,31 @@ claude mcp add --transport http rooquiz https://payload.rooquiz.com/api/mcp
 
 All tools act within the team your session is bound to.
 
+## stdio bridge
+
+Hosts without native HTTP transport (Claude Desktop, older MCP clients) and registry
+crawlers that build a container can go through the bridge in [`bin/rooquiz-mcp.mjs`](bin/rooquiz-mcp.mjs)
+— dependency-free, Node 18+. Everything above is a better path if your client speaks HTTP.
+
+```bash
+node bin/rooquiz-mcp.mjs           # or: docker build -t rooquiz-mcp . && docker run -i --rm rooquiz-mcp
+```
+
+| Env | Default | Purpose |
+| --- | --- | --- |
+| `ROOQUIZ_MCP_URL` | `https://payload.rooquiz.com/api/mcp` | Endpoint override |
+| `ROOQUIZ_TOKEN` | *(unset)* | Bearer token. Optional — see below. |
+
+`initialize`, `tools/list`, and `ping` are answerable without a token, so any client or
+directory can preview the tool catalog before signing in. `tools/call` requires OAuth and
+returns `401` with a `WWW-Authenticate` header pointing at the resource metadata.
+
 ## Support
 
 Questions or issues: [support@rooquiz.com](mailto:support@rooquiz.com)
 
 ---
 
-This repository carries the [`server.json`](server.json) manifest published to the official MCP Registry. The server implementation itself is closed source.
+This repository carries the [`server.json`](server.json) manifest published to the official
+MCP Registry, plus the MIT-licensed stdio bridge. The hosted server implementation itself is
+closed source.
