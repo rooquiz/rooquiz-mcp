@@ -71,12 +71,23 @@ node bin/rooquiz-mcp.mjs           # or: docker build -t rooquiz-mcp . && docker
 | Env | Default | Purpose |
 | --- | --- | --- |
 | `ROOQUIZ_MCP_URL` | `https://payload.rooquiz.com/api/mcp` | Endpoint override |
-| `ROOQUIZ_TOKEN` | *(unset)* | Bearer token — **required** |
+| `ROOQUIZ_TOKEN` | *(unset)* | Bearer token — **required to call any tool** |
 
 Every method needs a token, `initialize` included: without one the server answers `401` with
 a `WWW-Authenticate` header pointing at the resource metadata. Clients with native HTTP
 transport get this for free through OAuth; the bridge has nowhere to run a browser flow, so
 give it a personal access token.
+
+With no token set the bridge still completes a handshake and answers `tools/list`, reading
+both from [`bin/introspection.json`](bin/introspection.json) — a snapshot of what the hosted
+server returns. That is there for registry crawlers, which build this container with no
+credentials and judge the server by whether it introspects; `tools/call` still goes upstream
+and still `401`s. Once a token is set nothing is served from the snapshot: every message is
+forwarded, so a stale file can never shadow live data. Refresh it after changing tools:
+
+```bash
+ROOQUIZ_TOKEN=rqp_live_xxx node scripts/snapshot-tools.mjs
+```
 
 ## Support
 

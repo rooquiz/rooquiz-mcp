@@ -10,8 +10,11 @@ COPY package.json ./
 # Override to point at a different deployment; leave unset for production.
 ENV ROOQUIZ_MCP_URL=https://payload.rooquiz.com/api/mcp
 
-# Required — the server 401s every method without it, initialize included. Pass it at run
-# time (docker run -e / the registry's env-var field); never bake a token into this file.
+# Needed to call any tool — the hosted server 401s every method without it, initialize
+# included. Left empty the bridge still completes a handshake and lists its tools from
+# bin/introspection.json, so a registry crawler can introspect this image with no
+# credentials. Pass a real token at run time (docker run -e / the registry's env-var
+# field); never bake one into this file.
 ENV ROOQUIZ_TOKEN=""
 
 ENTRYPOINT ["node", "bin/rooquiz-mcp.mjs"]
