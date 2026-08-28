@@ -3,22 +3,51 @@
 Companion doc: [`PUBLISHING.md`](PUBLISHING.md) — step-by-step for the official Registry and Glama.
 This file tracks **status per channel** and holds **ready-to-paste submission copy**.
 
-Last updated: 2026-08-23
+Last updated: 2026-08-28
+
+## Does it pass link equity?
+
+Measured 2026-08-28 by fetching a competitor's listing page and reading the `rel` on the link that
+points at the vendor's own site. Re-run it like this (swap the slug):
+
+```bash
+curl -sL -A 'Mozilla/5.0' 'https://www.saashub.com/typeform' \
+  | grep -oE '<a[^>]+href="https?://[^"]*typeform\.com[^"]*"[^>]*>'
+```
+
+| Channel | `rel` on outbound vendor links | Passes equity |
+| --- | --- | --- |
+| PulseMCP | `noopener` | ✅ |
+| Smithery | `noopener noreferrer` | ✅ |
+| Slack App Directory | no `rel` attribute at all | ✅ |
+| GitHub (README body **and** the repo Website field) | `nofollow` | ❌ |
+| Glama | `ugc nofollow` | ❌ |
+| mcp.so | `nofollow ugc noopener noreferrer` | ❌ |
+| AlternativeTo | `nofollow noopener` | ❌ |
+| Product Hunt | `nofollow` | ❌ |
+
+Almost the entire MCP directory surface is `nofollow`. **Do these channels for discovery, LLM
+citation, and mirror-repo reach — not for SEO authority.** Of everything on this page only PulseMCP
+and Smithery pass equity, so those two deserve the earliest manual nudge. The web repo's
+`docs/seo/backlinks.md` §2 carries the same table from the SEO side.
 
 ## Status
 
 | Channel | Type | Status | Next step |
 | --- | --- | --- | --- |
-| Official MCP Registry | Metadata source | ✅ active (published 2026-08-20 as `com.rooquiz/rooquiz-mcp`) | Re-publish on version changes |
+| Official MCP Registry | Metadata source | ✅ active (published 2026-08-20 as `com.rooquiz/rooquiz-mcp`, v1.0.0 — reverified 2026-08-28) | Re-publish on version changes |
 | VS Code / Cursor one-click install | Client | ✅ in README (2026-08-22) | Recompute links from the formula below if the endpoint changes |
-| Smithery | Aggregator | 🟡 Badge is up; listing ownership unconfirmed | Sign in to smithery.ai and confirm the listing is claimed |
-| Glama **connector** | Aggregator | 🟡 Auto-ingested from the registry, but **Unhealthy** (last tested 2026-08-23 12:36) | Claim route written (`rooquizteam@gmail.com`) — needs deploy + a Glama account on that email. Health still needs a PAT mailed to support@glama.ai. Cosmetic — no badge here |
-| Glama **servers directory** | Aggregator | ⬜ Not submitted (`/mcp/servers/rooquiz/rooquiz-mcp` 404) | Required for the score badge — submit the repo, paste the Dockerfile, set `ROOQUIZ_TOKEN`. §A2 of PUBLISHING.md |
-| mcp.so | Aggregator | ⬜ Not submitted (`/server/rooquiz-mcp` still 404 as of 2026-08-22) | Open a GitHub issue; copy below |
-| PulseMCP | Aggregator | ⬜ Not indexed (API query for `rooquiz` returned 0 on 2026-08-22) | The official registry entry already satisfies its prerequisite; wait for ingest, submit manually if still missing in two weeks |
-| awesome-mcp-servers | GitHub list | 🟡 [PR #12649](https://github.com/punkpeye/awesome-mcp-servers/pull/12649) open, labelled `missing-glama` | Add the score badge to the entry once the Glama servers listing is graded |
+| `/.well-known/glama.json` | Claim route | ✅ **deployed** — `https://payload.rooquiz.com/.well-known/glama.json` returns 200 with the right JSON (verified 2026-08-28) | — |
+| Smithery | Aggregator | 🟡 Badge is up; listing ownership unconfirmed | **Passes equity — do this early.** Sign in to smithery.ai and confirm the listing is claimed |
+| PulseMCP | Aggregator | ⬜ Still not indexed (API query for `rooquiz` returned 0 again on 2026-08-28) | **Passes equity — do this early.** The two-week wait from 2026-08-22 expires **2026-09-05**; if `curl 'https://api.pulsemcp.com/v0beta/servers?query=rooquiz'` is still empty then, submit manually at https://www.pulsemcp.com/submit |
+| Glama **servers directory** | Aggregator | 🟡 **Now live** (was 404 on 2026-08-23): `/mcp/servers/rooquiz/rooquiz-mcp` returns 200 as `RooQuiz by rooquiz`, and `/badges/score.svg` serves 200. Still **unclaimed** — the page itself warns "Unclaimed servers have limited discoverability" | Claim it — **separate flow from the connector**, which is already verified. Signed in as `rooquizteam@gmail.com`, use "claim this server" on that page (§A2 of PUBLISHING.md: submit the repo, paste the Dockerfile, set `ROOQUIZ_TOKEN`). Then confirm a quality score appears at `/mcp/servers/rooquiz/rooquiz-mcp/score` |
+| Glama **connector** | Aggregator | ✅ **Claimed and healthy** (verified 2026-08-28). `/mcp/connectors/com.rooquiz/rooquiz-mcp` shows "Ownership verified" (`isVerified: 2026-08-28T08:35:51Z`) and status **Healthy**. The `.well-known/glama.json` route did the whole job — the PAT-to-support@glama.ai workaround was never needed | Done. Note this is a **different listing** from the servers directory above; claiming one does not claim the other |
+| awesome-mcp-servers | GitHub list | 🟡 [PR #12649](https://github.com/punkpeye/awesome-mcp-servers/pull/12649) open. Labels flipped to `has-glama` / `has-emoji` / `valid-name`; badge added 2026-08-24 | **Blocker is now the Glama quality score**, not the badge. The bot's 2026-08-24 comment asks a human to confirm the server has been evaluated. Claim the Glama listing first, then reply on the PR pointing at the score page |
+| mcp.so | Aggregator | ⬜ Not submitted (`/server/rooquiz-mcp` still 404 on 2026-08-28) | Open a GitHub issue; copy below |
 | Claude Connectors Directory | Client directory | 🔴 Blocked | Needs a Team/Enterprise org plus the prerequisites below |
 | ChatGPT Apps Directory | Client directory | 🔴 Blocked | Needs identity + domain verification plus the prerequisites below |
+
+Suggested order (equity first, then discovery): **Smithery → PulseMCP → claim the Glama *servers* listing → PR #12649 → mcp.so**.
 
 ## One-click install links
 
@@ -133,11 +162,20 @@ gh pr create --title "Add RooQuiz MCP server" \
 ### Glama
 
 Both channels are covered in section A of [`PUBLISHING.md`](PUBLISHING.md). Key point:
-**DCR is not enough for the health check** — it yields a `client_id`, never an access token,
-because our authorization server only supports `authorization_code`. The unblock is a PAT
-bound to a throwaway empty team, handed to Glama as an env var (servers directory) or by mail
-(connector). Opening up anonymous discovery was considered and rejected — Codex has no lazy
-401 trigger, so it would show a connected server whose every tool call fails.
+**The two channels are separate listings with separate claim flows** — as of 2026-08-28 the
+connector is claimed and Healthy while the servers directory is still unclaimed. Claiming one
+does nothing for the other.
+
+- **Connector** — resolved by the `/.well-known/glama.json` route alone (§A1). No PAT was needed
+  in the end; Glama fetched the file, matched `rooquizteam@gmail.com`, and flipped the listing to
+  "Ownership verified" + **Healthy** on its own.
+- **Servers directory** — still needs the §A2 flow (submit the repo, paste the Dockerfile, set
+  `ROOQUIZ_TOKEN`). Here **DCR is not enough for the health check**: it yields a `client_id`,
+  never an access token, because our authorization server only supports `authorization_code`.
+  The unblock is a PAT bound to a throwaway empty team, handed to Glama as an env var.
+
+Opening up anonymous discovery was considered and rejected — Codex has no lazy 401 trigger, so it
+would show a connected server whose every tool call fails.
 
 ### PulseMCP
 
