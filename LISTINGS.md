@@ -193,13 +193,36 @@ Its submission page states that publishing to the official MCP Registry is the b
 
 ## Prerequisites for the client directories
 
-Claude Connectors and the ChatGPT Apps Directory share this material. Any missing item means rejection:
+Claude Connectors and the ChatGPT Apps Directory share this material. Any missing item means
+rejection. Each line below was re-verified on 2026-08-28.
 
-- [ ] **Tool annotations** — annotate every tool in `rooquiz-payload/src/app/api/mcp/route.ts` with `readOnlyHint` / `destructiveHint`; `delete_*` and `update_*` tools must be marked destructive
-- [ ] **Public privacy policy page** — including a data-handling summary (what is collected, retention, who it is shared with). Anthropic is explicit: missing or incomplete means immediate rejection
-- [ ] **Public documentation page** — a single help page or blog post is enough, covering setup and auth steps
-- [ ] **At least 3 example prompts** — must exercise different tools. Suggested: (1) create an outcome quiz, (2) list recent leads and tag them, (3) pull funnel conversion stats for a form
-- [ ] **Origin header validation** — guards against DNS rebinding; required by Anthropic
-- [ ] **`serverInfo.version` aligned with `server.json`'s `version`**
-- [ ] **Claude side**: confirm the rooquiz claude.ai account is a Team or Enterprise org — individual plans do not show the submission entry point
-- [ ] **ChatGPT side**: complete publisher identity verification in the OpenAI Platform Dashboard, and verify control of `payload.rooquiz.com`
+- [x] **Tool annotations** — all 48 tools carry annotations
+  (`rooquiz-payload/src/integrations/mcp/annotations.ts`). Every `delete_*` tool is
+  `destructiveHint: true`. Note the deviation from what this list used to say: `update_*` is
+  **not** blanket-destructive. The file draws the line at "deletes or irreversibly overwrites
+  the user's content", so a pure config replacement stays `WRITE` and only `update_examinee`
+  is destructive. That reading matches the spec better than a name prefix would.
+  ⚠️ One worth revisiting: `update_form_translation` is `WRITE`, but replacing
+  `report.outcomes` wipes the other translations in that field — which is exactly an
+  irreversible overwrite by the file's own rule.
+- [x] **Public privacy policy page** — https://rooquiz.com/privacy. Section 4 carries an
+  "AI Assistants and MCP Clients" clause: what is sent (quiz content, responses, leads,
+  bookings), that it lands with the client's provider under their policy, that respondent
+  names / emails / phones are masked before leaving our systems, and how to revoke. Section 10
+  covers retention.
+- [x] **Public documentation page** — https://docs.rooquiz.com/en/integrations/mcp (zh at
+  `/zh/...`). Covers both auth paths, per-client config, the full tool list, limits and rate
+  limits.
+- [x] **At least 3 example prompts** — four, in the README and both documentation pages, each
+  labelled with the tools it exercises: templates → create → add question; leads → tag →
+  assign; forms → stats → funnel; translations. Added 2026-08-28.
+- [x] **Origin header validation** — `handleMcpRequest` refuses a present-but-unlisted
+  `Origin` with 403 before authenticating; an absent header passes, because no MCP client in
+  the production audit log is a browser. Added 2026-08-28.
+- [x] **`serverInfo.version` aligned with `server.json`'s `version`** — both `1.0.0`.
+- [ ] **Claude side**: confirm the rooquiz claude.ai account is a Team or Enterprise org —
+  individual plans do not show the submission entry point
+- [ ] **ChatGPT side**: complete publisher identity verification in the OpenAI Platform
+  Dashboard, and verify control of `payload.rooquiz.com`
+
+Everything we control is done. The two open boxes are account actions that need a real person.

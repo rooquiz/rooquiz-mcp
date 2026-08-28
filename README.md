@@ -47,6 +47,40 @@ claude mcp add --transport http rooquiz https://payload.rooquiz.com/api/mcp
 }
 ```
 
+## Example prompts
+
+Once connected, talk to it in plain language. Each of these exercises a different
+part of the server:
+
+**Build from a template**
+
+> Show me the coaching templates, create a scored quiz from the readiness one, then add
+> two questions about budget.
+
+*Exercises `list_templates` → `create_form_from_template` → `add_question`.*
+
+**Work the leads**
+
+> List the leads my Wheel of Life quiz captured this week, tag everyone who scored under
+> 40 as follow-up, and assign them to me.
+
+*Exercises `list_leads` → `set_lead_tags` → `assign_leads`.*
+
+**Diagnose the funnel**
+
+> Which of my quizzes has the worst completion rate, and where exactly do people drop off?
+
+*Exercises `list_forms` → `get_form_stats` → `get_form_funnel`.*
+
+**Go multilingual**
+
+> Translate my promotion-readiness quiz into Spanish and German, keeping the question codes.
+
+*Exercises `list_form_translations` → `create_form_translation`.*
+
+Respondent names, email addresses and phone numbers come back masked (`j***g@example.com`),
+so address a respondent by id rather than pasting a masked value back in.
+
 ## What you can do
 
 - **Quizzes** — create knowledge quizzes, scored quizzes, and "which X are you" outcome quizzes; edit questions, scoring formulas, and dimension analysis; start from templates
