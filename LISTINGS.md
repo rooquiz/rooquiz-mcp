@@ -24,7 +24,17 @@ curl -sL -A 'Mozilla/5.0' 'https://www.saashub.com/typeform' \
 | Glama | `ugc nofollow` | ❌ |
 | mcp.so | `nofollow ugc noopener noreferrer` | ❌ |
 | AlternativeTo | `nofollow noopener` | ❌ |
-| Product Hunt | `nofollow` | ❌ |
+| Product Hunt | `noreferrer noopener ugc` | ❓ see note |
+
+**Isolate the vendor link before reading a `rel`** — do not grep a whole page for `nofollow`.
+These pages are full of social, analytics and navigation links; a page-wide grep picks up somebody
+else's attribute. The Product Hunt row was recorded as `nofollow` that way and was wrong.
+
+The one `ugc`: Google has treated `nofollow` / `ugc` / `sponsored` as hints since March 2020, so
+for ranking purposes `ugc` behaves like `nofollow` and Product Hunt buys no authority. Majestic is
+a different crawler with its own rules — it drops `nofollow` from its flow metrics, but **how it
+treats `ugc` is unverified**, so Product Hunt may contribute something to Trust Flow. Treat it as
+unknown rather than zero, and do not relabel it `nofollow`.
 
 Almost the entire MCP directory surface is `nofollow`. **Do these channels for discovery, LLM
 citation, and mirror-repo reach — not for SEO authority.** Of everything on this page only PulseMCP
