@@ -4,6 +4,9 @@
   "description": "stdio bridge for the hosted RooQuiz MCP server (quizzes, leads, respondents, bookings).",
   "license": "MIT",
   "type": "module",
+  "scripts": {
+    "build": "node --check bin/rooquiz-mcp.mjs"
+  },
   "bin": {
     "rooquiz-mcp": "bin/rooquiz-mcp.mjs"
   },
