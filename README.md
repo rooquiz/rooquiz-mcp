@@ -105,8 +105,6 @@ node bin/rooquiz-mcp.mjs           # or: docker build -t rooquiz-mcp . && docker
 | Env | Default | Purpose |
 | --- | --- | --- |
 | `ROOQUIZ_TOKEN` | *(unset)* | Bearer token — **required for every hosted tool** |
-| `ROOQUIZ_PREVIEW_BASE` | `https://preview.rooquiz.com` | Preview API host; override only for a self-hosted deployment |
-| `ROOQUIZ_QUIZ_BASE` | `https://quizster.app` | Host preview links are built on; likewise |
 
 Every method needs a token, `initialize` included: without one the server answers `401` with
 a `WWW-Authenticate` header pointing at the resource metadata. Clients with native HTTP

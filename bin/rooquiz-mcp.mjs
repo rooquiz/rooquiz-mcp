@@ -12,11 +12,9 @@
  * and there is no supply chain to audit.
  *
  * Env:
- *   ROOQUIZ_TOKEN         bearer token. Set it and every message is forwarded upstream,
- *                         which is the only way to reach a hosted tool. Without a usable
- *                         one the bridge runs in preview mode — see below.
- *   ROOQUIZ_PREVIEW_BASE  preview API host, for self-hosted deployments only.
- *   ROOQUIZ_QUIZ_BASE     host preview links are built on, likewise.
+ *   ROOQUIZ_TOKEN    bearer token. Set it and every message is forwarded upstream, which is
+ *                    the only way to reach a hosted tool. Without a usable one the bridge
+ *                    runs in preview mode — see the skills note below.
  */
 
 import { readFileSync } from 'node:fs'
@@ -25,13 +23,17 @@ const ENDPOINT = 'https://payload.rooquiz.com/api/mcp'
 const TOKEN = process.env.ROOQUIZ_TOKEN || ''
 
 /**
- * Where the bundled preview skills post. This endpoint is public and unauthenticated by
- * design, which is the whole reason the tokenless path can do real work rather than only
- * introspect. Override the pair only when pointing at a self-hosted RooQuiz — the names
- * match the two variables the SKILL.md files already document.
+ * Where the bundled preview skills post, and the host their links are built on. Creation is
+ * public and unauthenticated by design, which is the whole reason the tokenless path can do
+ * real work rather than only introspect.
+ *
+ * Compiled in for the same reason ENDPOINT is: RooQuiz cloud is the one deployment these
+ * skills target, so an override would only add a way to misconfigure the bridge. The
+ * SKILL.md files name env vars for these because they are written for agents that make the
+ * request themselves — here the bridge makes it for them.
  */
-const PREVIEW_BASE = process.env.ROOQUIZ_PREVIEW_BASE || 'https://preview.rooquiz.com'
-const QUIZ_BASE = process.env.ROOQUIZ_QUIZ_BASE || 'https://quizster.app'
+const PREVIEW_BASE = 'https://preview.rooquiz.com'
+const QUIZ_BASE = 'https://quizster.app'
 
 // The one tool that is not derived from a skill: it hands the model a skill's full text.
 const GUIDE_TOOL = 'preview_guide'
