@@ -5,6 +5,42 @@ version the bridge reports during a tokenless handshake comes from `bin/introspe
 which mirrors what `https://payload.rooquiz.com/api/mcp` answers `initialize` with and moves
 on its own schedule — see `scripts/snapshot-tools.mjs`.
 
+## 1.1.0 — 2026-09-03
+
+### Added
+
+- **Preview mode: four tools that work with no token and no account.** Without a usable
+  credential the bridge used to complete a handshake, list 48 tools, and then `401` every
+  single one of them — technically introspectable, practically inert. It now also serves
+  `preview_quiz`, `preview_scorecard`, `preview_outcome` and `preview_guide`, which build a
+  temporary (~1 hour) shareable assessment and hand back a `quizster.app` link.
+
+  They cost nothing to run locally because they target RooQuiz's *public* preview endpoint,
+  `POST https://preview.rooquiz.com/api/preview-forms`, which takes no credentials by
+  design. `scene` is forced per tool, so a caller cannot ask `preview_quiz` for a scorecard
+  and never has to remember the value.
+
+  The instructions behind them are the [rooquiz-skills](https://github.com/rooquiz/rooquiz-skills)
+  `SKILL.md` files, vendored into `bin/skills.json` by `scripts/sync-skills.mjs`. Only the
+  frontmatter description of each rides in `tools/list`; the ~12KB of field schema, scoring
+  rules and examples is fetched on demand through `preview_guide`, and a rejected assessment
+  gets the whole guide attached to the error so the model can fix and retry in one round
+  trip.
+
+  Nothing was taken away to make room: `tools/list` leads with the four preview tools and
+  keeps all 48 snapshot tools behind them, so registry crawlers still see the full catalog.
+  `initialize` now says in its `instructions` which of the two groups can actually run.
+
+  A working token is unaffected: the preview tools are not offered and not answered, so
+  "with a token, every message is forwarded" still holds exactly.
+
+### Changed
+
+- **A refusal from upstream is now latched.** The first `401`/`403`/`-32001` puts the bridge
+  into the tokenless path for the rest of the process instead of re-learning it one wasted
+  round trip per message. This is what a registry crawler's placeholder token hits, and it
+  is what lets the preview tools answer immediately rather than after a pointless `POST`.
+
 ## 1.0.1 — 2026-09-03
 
 ### Fixed
