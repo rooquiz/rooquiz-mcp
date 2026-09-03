@@ -12,7 +12,6 @@
  * and there is no supply chain to audit.
  *
  * Env:
- *   ROOQUIZ_MCP_URL  endpoint override (default https://payload.rooquiz.com/api/mcp)
  *   ROOQUIZ_TOKEN    bearer token. Set it and every message is forwarded upstream, which
  *                    is the only way to actually call a tool. Without a usable one the
  *                    bridge still completes a handshake — see the introspection note below.
@@ -20,7 +19,7 @@
 
 import { readFileSync } from 'node:fs'
 
-const ENDPOINT = process.env.ROOQUIZ_MCP_URL || 'https://payload.rooquiz.com/api/mcp'
+const ENDPOINT = 'https://payload.rooquiz.com/api/mcp'
 const TOKEN = process.env.ROOQUIZ_TOKEN || ''
 
 // JSON-RPC 2.0 error codes we synthesize locally (the server owns the rest).

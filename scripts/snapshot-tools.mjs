@@ -14,12 +14,11 @@
  *
  * Env:
  *   ROOQUIZ_TOKEN    bearer token (required)
- *   ROOQUIZ_MCP_URL  endpoint override (default https://payload.rooquiz.com/api/mcp)
  */
 
 import { writeFileSync } from 'node:fs'
 
-const ENDPOINT = process.env.ROOQUIZ_MCP_URL || 'https://payload.rooquiz.com/api/mcp'
+const ENDPOINT = 'https://payload.rooquiz.com/api/mcp'
 const TOKEN = process.env.ROOQUIZ_TOKEN || ''
 const OUTPUT = new URL('../bin/introspection.json', import.meta.url)
 

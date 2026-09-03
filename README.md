@@ -104,7 +104,6 @@ node bin/rooquiz-mcp.mjs           # or: docker build -t rooquiz-mcp . && docker
 
 | Env | Default | Purpose |
 | --- | --- | --- |
-| `ROOQUIZ_MCP_URL` | `https://payload.rooquiz.com/api/mcp` | Endpoint override |
 | `ROOQUIZ_TOKEN` | *(unset)* | Bearer token — **required to call any tool** |
 
 Every method needs a token, `initialize` included: without one the server answers `401` with

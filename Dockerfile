@@ -7,9 +7,6 @@ WORKDIR /app
 COPY bin/ ./bin/
 COPY package.json ./
 
-# Override to point at a different deployment; leave unset for production.
-ENV ROOQUIZ_MCP_URL=https://payload.rooquiz.com/api/mcp
-
 # Needed to call any tool — the hosted server 401s every method without it, initialize
 # included. Left empty, or filled with the placeholder a registry crawler injects, the
 # bridge still completes a handshake and lists its tools from bin/introspection.json, so
