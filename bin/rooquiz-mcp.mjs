@@ -14,8 +14,8 @@
  * Env:
  *   ROOQUIZ_MCP_URL  endpoint override (default https://payload.rooquiz.com/api/mcp)
  *   ROOQUIZ_TOKEN    bearer token. Set it and every message is forwarded upstream, which
- *                    is the only way to actually call a tool. Without it the bridge still
- *                    completes a handshake — see the introspection note below.
+ *                    is the only way to actually call a tool. Without a usable one the
+ *                    bridge still completes a handshake — see the introspection note below.
  */
 
 import { readFileSync } from 'node:fs'
@@ -26,6 +26,8 @@ const TOKEN = process.env.ROOQUIZ_TOKEN || ''
 // JSON-RPC 2.0 error codes we synthesize locally (the server owns the rest).
 const ERR_PARSE = -32700
 const ERR_INTERNAL = -32603
+// What the hosted server answers with when the bearer token is missing, wrong, or revoked.
+const ERR_UNAUTHORIZED = -32001
 
 /**
  * Snapshot of what the hosted server answers `initialize` and `tools/list` with,
@@ -34,13 +36,18 @@ const ERR_INTERNAL = -32603
  * The server requires a bearer token on every method, `initialize` included — correct
  * behaviour for an OAuth-protected resource (the 401 carries the `WWW-Authenticate`
  * header clients use to discover the authorization server, so it must not be relaxed).
- * But registry crawlers build this container, pipe JSON-RPC in with no credentials, and
- * judge the server by whether it introspects. Handshake and tool list are public
- * information, so we answer those two from the snapshot when there is no token instead
- * of failing the handshake.
+ * But registry crawlers build this container, pipe JSON-RPC in, and judge the server by
+ * whether it introspects. Handshake and tool list are public information, so we answer
+ * those two from the snapshot rather than fail the handshake.
  *
- * Only the tokenless path reads this file. With a token set, every message goes upstream
- * exactly as before and the client sees live data — a stale snapshot can never shadow it.
+ * "No credentials" is not only an empty token: Glama fills every declared env var with a
+ * placeholder (`roq_pat_dummy_...`), so the crawler always arrives holding something that
+ * looks like a token and 401s. Both routes therefore land here — an unset token skips the
+ * round trip, an unusable one falls back after upstream refuses it.
+ *
+ * A working token never reads this file: the fallback is only reachable through a 401, so
+ * a stale snapshot can never shadow live data. `tools/call` has no local answer either
+ * way, so a bad token still surfaces its 401 where the operator will notice it.
  */
 let snapshotCache = null
 
@@ -124,6 +131,31 @@ function answerLocally(message) {
   }
 }
 
+/**
+ * Stamps the request's id onto the response.
+ *
+ * The server's 401 body carries `id: null` whatever the request asked for, and a reply
+ * whose id does not match is unroutable: strict clients reject it against the JSON-RPC
+ * schema (`id` must be a string or a number on a response) and then sit waiting for the
+ * answer to their own id until they time out. Relaying it verbatim turns a one-line auth
+ * error into a minute-long hang and, for a registry crawler, a failed build.
+ */
+function reconcileId(message, body) {
+  if (body && typeof body === 'object' && !Array.isArray(body) && body.id !== message.id) {
+    return { ...body, id: message.id ?? null }
+  }
+  return body
+}
+
+/** The upstream turned the message away because the token is missing, wrong, or revoked. */
+function isAuthFailure(status, body) {
+  return status === 401 || status === 403 || body?.error?.code === ERR_UNAUTHORIZED
+}
+
+/**
+ * POSTs one message upstream. Returns the HTTP status next to the body because the caller
+ * has to tell an auth refusal apart from an ordinary error response.
+ */
 async function forward(message) {
   const headers = {
     'Content-Type': 'application/json',
@@ -142,23 +174,26 @@ async function forward(message) {
 
   // 204 (notification ack) and empty bodies carry nothing to relay.
   if (response.status === 204) {
-    return null
+    return { status: response.status, body: null }
   }
   const text = await response.text()
   if (!text) {
-    return null
+    return { status: response.status, body: null }
   }
+
+  let body
   try {
-    return JSON.parse(text)
+    body = JSON.parse(text)
   } catch {
     // Non-JSON body (proxy error page, WAF block). Surface it as a JSON-RPC error
     // instead of letting the client hang waiting for a response to its id.
-    return errorResponse(
+    body = errorResponse(
       message.id,
       ERR_INTERNAL,
       `Upstream returned HTTP ${response.status} with a non-JSON body`
     )
   }
+  return { status: response.status, body: reconcileId(message, body) }
 }
 
 async function handle(line) {
@@ -186,10 +221,22 @@ async function handle(line) {
   }
 
   try {
-    const result = await forward(message)
+    const { status, body } = await forward(message)
     // Notifications get no reply even if the server answered with a body.
-    if (result && !isNotification) {
-      send(result)
+    if (isNotification) {
+      return
+    }
+    // The token upstream just refused buys no more than no token at all, so answer the
+    // public methods from the snapshot rather than fail the handshake over it.
+    if (isAuthFailure(status, body)) {
+      const local = answerLocally(message)
+      if (local) {
+        send(local)
+        return
+      }
+    }
+    if (body) {
+      send(body)
     }
   } catch (error) {
     if (!isNotification) {
