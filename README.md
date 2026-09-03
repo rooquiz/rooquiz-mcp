@@ -104,23 +104,55 @@ node bin/rooquiz-mcp.mjs           # or: docker build -t rooquiz-mcp . && docker
 
 | Env | Default | Purpose |
 | --- | --- | --- |
-| `ROOQUIZ_TOKEN` | *(unset)* | Bearer token — **required to call any tool** |
+| `ROOQUIZ_TOKEN` | *(unset)* | Bearer token — **required for every hosted tool** |
+| `ROOQUIZ_PREVIEW_BASE` | `https://preview.rooquiz.com` | Preview API host; override only for a self-hosted deployment |
+| `ROOQUIZ_QUIZ_BASE` | `https://quizster.app` | Host preview links are built on; likewise |
 
 Every method needs a token, `initialize` included: without one the server answers `401` with
 a `WWW-Authenticate` header pointing at the resource metadata. Clients with native HTTP
 transport get this for free through OAuth; the bridge has nowhere to run a browser flow, so
 give it a personal access token.
 
-With no token set the bridge still completes a handshake and answers `tools/list`, reading
+With no usable token the bridge still completes a handshake and answers `tools/list`, reading
 both from [`bin/introspection.json`](bin/introspection.json) — a snapshot of what the hosted
 server returns. That is there for registry crawlers, which build this container with no
-credentials and judge the server by whether it introspects; `tools/call` still goes upstream
-and still `401`s. Once a token is set nothing is served from the snapshot: every message is
-forwarded, so a stale file can never shadow live data. Refresh it after changing tools:
+credentials and judge the server by whether it introspects. Calling a hosted tool still goes
+upstream and still `401`s. Once a working token is set nothing is served locally: every
+message is forwarded, so a stale file can never shadow live data. Refresh it after changing
+tools:
 
 ```bash
 ROOQUIZ_TOKEN=rqp_live_xxx node scripts/snapshot-tools.mjs
 ```
+
+### Preview mode — no token, no account
+
+A bridge with no usable token is not useless. It also serves four tools that need no
+credentials at all, because they target RooQuiz's **public** preview endpoint:
+
+| Tool | What it builds |
+| --- | --- |
+| `preview_quiz` | Right/wrong quiz — correct answers earn points and the taker gets a graded score |
+| `preview_scorecard` | Scored questionnaire — every option adds points toward a total that buckets into a level |
+| `preview_outcome` | Personality / type test — options vote for result types and the most-voted type wins |
+| `preview_guide` | The full authoring guide for one of the three: field schema, scoring rules, themes, examples |
+
+Ask in plain language — *"make me a 5-question personality quiz about coffee and give me a
+link"* — and you get back something like `https://quizster.app/b/7k3m9q2p`, openable and
+shareable straight away. Previews self-destruct after about an hour and anonymous creation is
+capped at roughly 10 per hour per IP; sign in and use `create_form` to keep an assessment.
+
+These tools are the [rooquiz-skills](https://github.com/rooquiz/rooquiz-skills) `SKILL.md`
+files vendored into [`bin/skills.json`](bin/skills.json) — the same instructions that repo
+ships as a Claude Code plugin, served here over MCP instead. That repo is their source of
+truth; re-vendor after editing one:
+
+```bash
+ROOQUIZ_SKILLS_DIR=../rooquiz-skills node scripts/sync-skills.mjs
+```
+
+They disappear once a working token is set: with an account, `create_form` builds a permanent
+form rather than a link that expires.
 
 ## Support
 

@@ -12,15 +12,29 @@
  * and there is no supply chain to audit.
  *
  * Env:
- *   ROOQUIZ_TOKEN    bearer token. Set it and every message is forwarded upstream, which
- *                    is the only way to actually call a tool. Without a usable one the
- *                    bridge still completes a handshake — see the introspection note below.
+ *   ROOQUIZ_TOKEN         bearer token. Set it and every message is forwarded upstream,
+ *                         which is the only way to reach a hosted tool. Without a usable
+ *                         one the bridge runs in preview mode — see below.
+ *   ROOQUIZ_PREVIEW_BASE  preview API host, for self-hosted deployments only.
+ *   ROOQUIZ_QUIZ_BASE     host preview links are built on, likewise.
  */
 
 import { readFileSync } from 'node:fs'
 
 const ENDPOINT = 'https://payload.rooquiz.com/api/mcp'
 const TOKEN = process.env.ROOQUIZ_TOKEN || ''
+
+/**
+ * Where the bundled preview skills post. This endpoint is public and unauthenticated by
+ * design, which is the whole reason the tokenless path can do real work rather than only
+ * introspect. Override the pair only when pointing at a self-hosted RooQuiz — the names
+ * match the two variables the SKILL.md files already document.
+ */
+const PREVIEW_BASE = process.env.ROOQUIZ_PREVIEW_BASE || 'https://preview.rooquiz.com'
+const QUIZ_BASE = process.env.ROOQUIZ_QUIZ_BASE || 'https://quizster.app'
+
+// The one tool that is not derived from a skill: it hands the model a skill's full text.
+const GUIDE_TOOL = 'preview_guide'
 
 // JSON-RPC 2.0 error codes we synthesize locally (the server owns the rest).
 const ERR_PARSE = -32700
@@ -45,8 +59,7 @@ const ERR_UNAUTHORIZED = -32001
  * round trip, an unusable one falls back after upstream refuses it.
  *
  * A working token never reads this file: the fallback is only reachable through a 401, so
- * a stale snapshot can never shadow live data. `tools/call` has no local answer either
- * way, so a bad token still surfaces its 401 where the operator will notice it.
+ * a stale snapshot can never shadow live data.
  */
 let snapshotCache = null
 
@@ -68,6 +81,40 @@ function loadSnapshot() {
   }
   return snapshotCache
 }
+
+/**
+ * The three RooQuiz preview skills, vendored from the rooquiz-skills repo by
+ * scripts/sync-skills.mjs.
+ *
+ * They target a public, credential-free endpoint, so the bridge can run them itself. That
+ * turns the tokenless path from "connected but every tool 401s" into something that
+ * actually produces a shareable assessment link. They are offered only when there is no
+ * usable token: with one, the hosted `create_form` family builds permanent forms and the
+ * bridge stays a pure passthrough.
+ *
+ * Missing file — again, someone copied the .mjs out alone — simply means no preview tools
+ * and the behaviour this bridge had before they existed.
+ */
+let skillsCache = null
+
+function loadSkills() {
+  if (skillsCache) {
+    return skillsCache
+  }
+  try {
+    const parsed = JSON.parse(readFileSync(new URL('./skills.json', import.meta.url), 'utf8'))
+    skillsCache = Array.isArray(parsed.skills) ? parsed.skills : []
+  } catch {
+    skillsCache = []
+  }
+  return skillsCache
+}
+
+/**
+ * Guide types already handed to this client, so a validation failure can attach the full
+ * instructions the first time and a one-line pointer afterwards.
+ */
+const servedGuides = new Set()
 
 /**
  * stdout writes must not interleave — every message goes through here.
@@ -93,21 +140,131 @@ function resultResponse(id, value) {
   return { jsonrpc: '2.0', id, result: value }
 }
 
+/** A tool that failed reports it inside a successful result, so the model can recover. */
+function toolError(id, text) {
+  return resultResponse(id, { content: [{ type: 'text', text }], isError: true })
+}
+
 /** Mirrors the server: echo the client's version when we support it, else offer our latest. */
 function negotiateProtocolVersion(requested, supported) {
   return typeof requested === 'string' && supported.includes(requested) ? requested : supported[0]
 }
 
 /**
- * Answers the tokenless introspection methods, or null to let the message go upstream.
- * `tools/call` deliberately falls through: without a token it must 401 so the operator
- * finds out they need one, rather than looking connected and failing later.
+ * Told to the model through `initialize`, because a merged tool list otherwise looks like
+ * 51 equally usable tools when only the preview ones can run without a token.
  */
-function answerLocally(message) {
+function tokenlessNotice(skills) {
+  const usable = [...skills.map(skill => skill.tool), GUIDE_TOOL].join(', ')
+  return [
+    `There is no usable ROOQUIZ_TOKEN — none was set, or the server refused the one given — so this`,
+    `server is running in preview mode. Only ${usable} work right now: they build a temporary (about`,
+    'an hour), shareable assessment and hand back a link, and need no account, login, or API key.',
+    'Every other tool listed requires a token and will fail with a 401 — set ROOQUIZ_TOKEN to a',
+    'RooQuiz personal access token to use them.',
+  ].join(' ')
+}
+
+/**
+ * The preview tools, derived from the vendored skills.
+ *
+ * Each skill's frontmatter description is already written to triage between the three
+ * assessment types, so it is reused verbatim as the tool description; the ~12KB of field
+ * schema, scoring rules and examples behind it stays out of the tool list and is fetched
+ * on demand through `preview_guide`.
+ */
+function previewTools() {
+  const skills = loadSkills()
+  if (skills.length === 0) {
+    return []
+  }
+
+  const tools = skills.map(skill => ({
+    name: skill.tool,
+    description:
+      `${skill.description}\n\nThis tool takes the finished assessment JSON and nothing else. ` +
+      `Unless its field schema, scoring rules and worked example are already in context, call ` +
+      `${GUIDE_TOOL} with type "${skill.guideType}" first.`,
+    inputSchema: {
+      type: 'object',
+      properties: {
+        form: {
+          type: 'object',
+          description:
+            `The complete assessment JSON, shaped as documented by ${GUIDE_TOOL} ` +
+            `(type "${skill.guideType}"). "scene" is forced to "${skill.scene}" for you.`,
+        },
+      },
+      required: ['form'],
+    },
+    outputSchema: {
+      type: 'object',
+      properties: {
+        url: { type: 'string', description: 'Browser link to the preview — hand it over verbatim.' },
+        publicToken: { type: 'string', description: 'Identifier the link is built from.' },
+        expiresAt: { type: 'string', description: 'ISO timestamp; the link 404s afterwards.' },
+      },
+      required: ['url', 'publicToken'],
+    },
+    // Creating a preview only ever adds one, and it deletes itself within the hour, so
+    // there is nothing here to destroy. Every call mints a new link, hence not idempotent.
+    annotations: {
+      title: skill.title,
+      readOnlyHint: false,
+      destructiveHint: false,
+      idempotentHint: false,
+      openWorldHint: true,
+    },
+  }))
+
+  tools.push({
+    name: GUIDE_TOOL,
+    description:
+      'Authoring guide for one RooQuiz preview assessment type: the full field schema, question ' +
+      'types, scoring rules, themes, common mistakes and a worked example. Read the guide for the ' +
+      `type you want before calling ${skills.map(skill => skill.tool).join(', ')}.`,
+    inputSchema: {
+      type: 'object',
+      properties: {
+        type: {
+          type: 'string',
+          enum: skills.map(skill => skill.guideType),
+          description:
+            'quiz = right/wrong graded test; scorecard = every option adds points toward a level; ' +
+            'outcome = personality/type test with no right answers.',
+        },
+      },
+      required: ['type'],
+    },
+    // Reads bundled text; touches nothing, not even the network.
+    annotations: {
+      title: 'Read preview authoring guide',
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: false,
+    },
+  })
+
+  return tools
+}
+
+/**
+ * Answers the methods that need no token, or null to let the message go upstream.
+ *
+ * Tool calls other than the preview ones deliberately fall through: without a token they
+ * must 401 so the operator finds out they need one, rather than looking connected and
+ * failing later.
+ */
+async function answerLocally(message) {
   const snapshot = loadSnapshot()
+  const skills = loadSkills()
 
   switch (message.method) {
-    case 'initialize':
+    case 'initialize': {
+      const instructions = [skills.length ? tokenlessNotice(skills) : '', snapshot.instructions]
+        .filter(Boolean)
+        .join('\n\n')
       return resultResponse(message.id, {
         protocolVersion: negotiateProtocolVersion(
           message.params?.protocolVersion,
@@ -115,19 +272,172 @@ function answerLocally(message) {
         ),
         capabilities: snapshot.capabilities,
         serverInfo: snapshot.serverInfo,
-        instructions: snapshot.instructions,
+        instructions: instructions || undefined,
       })
+    }
 
     case 'ping':
       return resultResponse(message.id, {})
 
     case 'tools/list':
-      // The server does not paginate tools/list, so there is no cursor to honour.
-      return resultResponse(message.id, { tools: snapshot.tools })
+      // The server does not paginate tools/list, so there is no cursor to honour. The
+      // preview tools lead because they are the ones a tokenless client can actually run;
+      // the hosted list stays behind them so registry crawlers still see the full catalog.
+      return resultResponse(message.id, { tools: [...previewTools(), ...snapshot.tools] })
+
+    case 'tools/call':
+      return callPreviewTool(message)
 
     default:
       return null
   }
+}
+
+/** Dispatches a tools/call to a vendored skill, or null when the name is a hosted tool. */
+async function callPreviewTool(message) {
+  const skills = loadSkills()
+  const name = message.params?.name
+
+  if (name === GUIDE_TOOL) {
+    const type = message.params?.arguments?.type
+    const skill = skills.find(candidate => candidate.guideType === type)
+    if (!skill) {
+      return toolError(
+        message.id,
+        `Unknown guide type ${JSON.stringify(type ?? null)}. Available: ${skills
+          .map(candidate => candidate.guideType)
+          .join(', ')}.`
+      )
+    }
+    servedGuides.add(skill.guideType)
+    return resultResponse(message.id, { content: [{ type: 'text', text: skill.body }] })
+  }
+
+  const skill = skills.find(candidate => candidate.tool === name)
+  return skill ? createPreview(message, skill) : null
+}
+
+/** POSTs the assessment to the public preview API and turns the answer into a link. */
+async function createPreview(message, skill) {
+  const form = message.params?.arguments?.form
+  if (!form || typeof form !== 'object' || Array.isArray(form)) {
+    return toolError(
+      message.id,
+      `"form" must be the complete assessment JSON as an object. Call ${GUIDE_TOOL} with type ` +
+        `"${skill.guideType}" for its shape.`
+    )
+  }
+
+  let response
+  let text
+  try {
+    response = await fetch(`${PREVIEW_BASE}/api/preview-forms`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      // `scene` is fixed per skill: forcing it keeps preview_quiz from creating a
+      // scorecard and saves the model from having to remember it at all.
+      body: JSON.stringify({ ...form, scene: skill.scene }),
+    })
+    text = await response.text()
+  } catch (error) {
+    return toolError(message.id, `Request to ${PREVIEW_BASE} failed: ${error.message}`)
+  }
+
+  let body = null
+  try {
+    body = JSON.parse(text)
+  } catch {
+    // Left null — describeFailure falls back to the raw text.
+  }
+
+  if (!response.ok) {
+    return toolError(message.id, describeFailure(response.status, body, text, skill))
+  }
+
+  const publicToken = body?.doc?.publicToken
+  if (!publicToken) {
+    return toolError(
+      message.id,
+      `${PREVIEW_BASE} accepted the assessment but returned no publicToken: ${text.slice(0, 300)}`
+    )
+  }
+
+  const url = `${QUIZ_BASE}/b/${publicToken}`
+  const expiresAt = body.doc.expiresAt
+  const lines = [
+    `Preview created: ${url}`,
+    'Hand that link to the user exactly as it is — there is nothing to append.',
+    expiresAt
+      ? `It expires at ${expiresAt} (previews live about an hour).`
+      : 'Previews live about an hour, then the link 404s.',
+    'Recreate the assessment in RooQuiz to keep it permanently.',
+  ]
+
+  return resultResponse(message.id, {
+    content: [{ type: 'text', text: lines.join('\n') }],
+    structuredContent: { url, publicToken, expiresAt },
+  })
+}
+
+/**
+ * Payload nests validation failures under errors[].data.errors, so walk the whole body for
+ * message/path pairs rather than trusting one shape.
+ */
+function collectValidationErrors(node, found = []) {
+  if (Array.isArray(node)) {
+    for (const item of node) {
+      collectValidationErrors(item, found)
+    }
+  } else if (node && typeof node === 'object') {
+    if (typeof node.message === 'string') {
+      found.push([node.path, node.message].filter(Boolean).join(': '))
+    }
+    for (const value of Object.values(node)) {
+      if (value && typeof value === 'object') {
+        collectValidationErrors(value, found)
+      }
+    }
+  }
+  return found
+}
+
+/**
+ * Renders a refusal from the preview API into something the model can act on.
+ *
+ * A rejection is usually a schema mistake the guide already covers, so the first one for a
+ * given type carries the whole guide: the model then fixes and retries in a single round
+ * trip instead of guessing.
+ */
+function describeFailure(status, body, text, skill) {
+  if (status === 429) {
+    return (
+      `${PREVIEW_BASE} rate-limited the request (HTTP 429). Anonymous preview creation is capped ` +
+      'at about 10 per hour per IP — wait before retrying.'
+    )
+  }
+
+  const errors = collectValidationErrors(body?.errors)
+  const parts = [`${PREVIEW_BASE} rejected the assessment (HTTP ${status}).`]
+  if (errors.length > 0) {
+    for (const error of errors) {
+      parts.push(`  - ${error}`)
+    }
+  } else {
+    parts.push(text.slice(0, 500))
+  }
+  parts.push('')
+
+  if (servedGuides.has(skill.guideType)) {
+    parts.push(
+      `Fix the JSON and retry; call ${GUIDE_TOOL} with type "${skill.guideType}" again if you need ` +
+        'the rules.'
+    )
+  } else {
+    servedGuides.add(skill.guideType)
+    parts.push('The full authoring guide follows — fix the JSON against it and retry.', '', '---', '', skill.body)
+  }
+
+  return parts.join('\n')
 }
 
 /**
@@ -195,6 +505,13 @@ async function forward(message) {
   return { status: response.status, body: reconcileId(message, body) }
 }
 
+/**
+ * Latched the first time upstream refuses the token, after which the bridge behaves as if
+ * none had been set. A crawler's placeholder token would otherwise buy a wasted round trip
+ * and a 401 on every single message before falling back.
+ */
+let upstreamRefused = false
+
 async function handle(line) {
   let message
   try {
@@ -206,13 +523,13 @@ async function handle(line) {
 
   const isNotification = message.id === undefined || message.id === null
 
-  if (!TOKEN) {
+  if (!TOKEN || upstreamRefused) {
     // Nothing upstream will accept, so spending a round trip on a notification only to
     // read a 401 nobody sees is pure noise. `notifications/initialized` lands here.
     if (isNotification) {
       return
     }
-    const local = answerLocally(message)
+    const local = await answerLocally(message)
     if (local) {
       send(local)
       return
@@ -221,14 +538,17 @@ async function handle(line) {
 
   try {
     const { status, body } = await forward(message)
+    if (isAuthFailure(status, body)) {
+      upstreamRefused = true
+    }
     // Notifications get no reply even if the server answered with a body.
     if (isNotification) {
       return
     }
     // The token upstream just refused buys no more than no token at all, so answer the
-    // public methods from the snapshot rather than fail the handshake over it.
-    if (isAuthFailure(status, body)) {
-      const local = answerLocally(message)
+    // public methods locally rather than fail the handshake over it.
+    if (upstreamRefused) {
+      const local = await answerLocally(message)
       if (local) {
         send(local)
         return
