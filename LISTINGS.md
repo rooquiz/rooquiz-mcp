@@ -3,7 +3,7 @@
 Companion doc: [`PUBLISHING.md`](PUBLISHING.md) — step-by-step for the official Registry and Glama.
 This file tracks **status per channel** and holds **ready-to-paste submission copy**.
 
-Last updated: 2026-08-28
+Last updated: 2026-09-06
 
 ## Does it pass link equity?
 
@@ -19,6 +19,7 @@ curl -sL -A 'Mozilla/5.0' 'https://www.saashub.com/typeform' \
 | --- | --- | --- |
 | PulseMCP | `noopener` | ✅ |
 | Smithery | `noopener noreferrer` | ✅ |
+| M8ven | `noopener` — but the only outbound link is the **GitHub repo**; the page never links `rooquiz.com` | ➖ n/a |
 | Slack App Directory | no `rel` attribute at all | ✅ |
 | GitHub (README body **and** the repo Website field) | `nofollow` | ❌ |
 | Glama | `ugc nofollow` | ❌ |
@@ -49,10 +50,11 @@ and Smithery pass equity, so those two deserve the earliest manual nudge. The we
 | VS Code / Cursor one-click install | Client | ✅ in README (2026-08-22) | Recompute links from the formula below if the endpoint changes |
 | `/.well-known/glama.json` | Claim route | ✅ **deployed** — `https://payload.rooquiz.com/.well-known/glama.json` returns 200 with the right JSON (verified 2026-08-28) | — |
 | Smithery | Aggregator | 🟡 Badge is up; listing ownership unconfirmed | **Passes equity — do this early.** Sign in to smithery.ai and confirm the listing is claimed |
-| PulseMCP | Aggregator | ⬜ Still not indexed (API query for `rooquiz` returned 0 again on 2026-08-28) | **Passes equity — do this early.** The two-week wait from 2026-08-22 expires **2026-09-05**; if `curl 'https://api.pulsemcp.com/v0beta/servers?query=rooquiz'` is still empty then, submit manually at https://www.pulsemcp.com/submit |
+| PulseMCP | Aggregator | ⬜ Unverified — the two-week wait **expired 2026-09-05** and the documented check no longer runs. `v0beta` is **fully sunset as of September 2026** (it now returns `API_SUNSET` on every call); the replacement `https://api.pulsemcp.com/v0.1/servers?query=rooquiz` requires an `X-API-Key`, and `www.pulsemcp.com` 403s a plain curl. Last real data point is still the 0-result query of 2026-08-28 | **Passes equity — do this early.** The wait is over: submit manually at https://www.pulsemcp.com/submit. To re-check by API instead, request a key from hello@pulsemcp.com and call `curl -H 'X-API-Key: …' 'https://api.pulsemcp.com/v0.1/servers?query=rooquiz'` |
 | Glama **servers directory** | Aggregator | 🟡 **Now live** (was 404 on 2026-08-23): `/mcp/servers/rooquiz/rooquiz-mcp` returns 200 as `RooQuiz by rooquiz`, and `/badges/score.svg` serves 200. Still **unclaimed** — the page itself warns "Unclaimed servers have limited discoverability" | Claim it — **separate flow from the connector**, which is already verified. Signed in as `rooquizteam@gmail.com`, use "claim this server" on that page (§A2 of PUBLISHING.md: submit the repo, paste the Dockerfile, set `ROOQUIZ_TOKEN`). Then confirm a quality score appears at `/mcp/servers/rooquiz/rooquiz-mcp/score` |
 | Glama **connector** | Aggregator | ✅ **Claimed and healthy** (verified 2026-08-28). `/mcp/connectors/com.rooquiz/rooquiz-mcp` shows "Ownership verified" (`isVerified: 2026-08-28T08:35:51Z`) and status **Healthy**. The `.well-known/glama.json` route did the whole job — the PAT-to-support@glama.ai workaround was never needed | Done. Note this is a **different listing** from the servers directory above; claiming one does not claim the other |
 | awesome-mcp-servers | GitHub list | 🟡 [PR #12649](https://github.com/punkpeye/awesome-mcp-servers/pull/12649) open. Labels flipped to `has-glama` / `has-emoji` / `valid-name`; badge added 2026-08-24 | **Blocker is now the Glama quality score**, not the badge. The bot's 2026-08-24 comment asks a human to confirm the server has been evaluated. Claim the Glama listing first, then reply on the PR pointing at the score page |
+| M8ven Trust Index | Aggregator / security scanner | ✅ **Verified** 2026-09-05 via `git_commits` against commit `4666dad`. Listing: `https://m8ven.ai/mcp/rooquiz-rooquiz-mcp-14mq8p`. Grade **C · Emerging, 74/100** — M8ven caps new projects at C until adoption is earned, and it grades the *manifest repo* since the server itself is closed source ("we have no way to read this server ourselves"). Verified-only badge (no grade) is in the README | Two open findings, both about this repo, not the hosted server: (1) "secret credentials may flow to a network call" — `ROOQUIZ_TOKEN` read from `process.env`, destination unprovable to a scanner; (2) no test files. Claiming the listing unlocks the per-finding dispute flow and the "1 concrete improvement". Re-check the grade after PulseMCP/mcp.so land |
 | mcp.so | Aggregator | ⬜ Not submitted (`/server/rooquiz-mcp` still 404 on 2026-08-28) | Open a GitHub issue; copy below |
 | Claude Connectors Directory | Client directory | 🔴 Blocked | Needs a Team/Enterprise org plus the prerequisites below |
 | ChatGPT Apps Directory | Client directory | 🔴 Blocked | Needs identity + domain verification plus the prerequisites below |
@@ -189,7 +191,7 @@ would show a connected server whose every tool call fails.
 
 ### PulseMCP
 
-Its submission page states that publishing to the official MCP Registry is the best first step, and we are already on the registry. Wait for automatic ingest first. If `curl 'https://api.pulsemcp.com/v0beta/servers?query=rooquiz'` is still empty in two weeks, submit manually at https://www.pulsemcp.com/submit.
+Its submission page states that publishing to the official MCP Registry is the best first step, and we are already on the registry. We waited for automatic ingest from 2026-08-22; the window closed 2026-09-05 with no listing observed, so **submit manually** at https://www.pulsemcp.com/submit. The old check command is dead — `v0beta` was fully sunset in September 2026 and `v0.1` needs an `X-API-Key` (request one from hello@pulsemcp.com).
 
 ## Prerequisites for the client directories
 
