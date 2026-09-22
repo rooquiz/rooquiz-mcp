@@ -2,6 +2,7 @@
 
 [![smithery badge](https://smithery.ai/badge/rooquiz/rooquiz-mcp)](https://smithery.ai/servers/rooquiz/rooquiz-mcp)
 [![M8ven Verified](https://m8ven.ai/badge/mcp/rooquiz-rooquiz-mcp-14mq8p?variant=verified)](https://m8ven.ai/mcp/rooquiz-rooquiz-mcp-14mq8p)
+[![LobeHub](https://lobehub.com/badge/mcp/rooquiz-rooquiz-mcp)](https://lobehub.com/mcp/rooquiz-rooquiz-mcp)
 [![Install in VS Code](https://img.shields.io/badge/VS_Code-Install_Server-0098FF?style=flat-square&logo=visualstudiocode&logoColor=white)](https://insiders.vscode.dev/redirect/mcp/install?name=rooquiz&config=%7B%22type%22%3A%22http%22%2C%22url%22%3A%22https%3A%2F%2Fpayload.rooquiz.com%2Fapi%2Fmcp%22%7D)
 [![Install in Cursor](https://img.shields.io/badge/Cursor-Install_Server-000000?style=flat-square&logo=cursor&logoColor=white)](https://cursor.com/install-mcp?name=rooquiz&config=eyJ1cmwiOiJodHRwczovL3BheWxvYWQucm9vcXVpei5jb20vYXBpL21jcCJ9)
 

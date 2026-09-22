@@ -55,6 +55,7 @@ and Smithery pass equity, so those two deserve the earliest manual nudge. The we
 | Glama **connector** | Aggregator | ✅ **Claimed and healthy** (verified 2026-08-28). `/mcp/connectors/com.rooquiz/rooquiz-mcp` shows "Ownership verified" (`isVerified: 2026-08-28T08:35:51Z`) and status **Healthy**. The `.well-known/glama.json` route did the whole job — the PAT-to-support@glama.ai workaround was never needed | Done. Note this is a **different listing** from the servers directory above; claiming one does not claim the other |
 | awesome-mcp-servers | GitHub list | 🟡 [PR #12649](https://github.com/punkpeye/awesome-mcp-servers/pull/12649) open. Labels flipped to `has-glama` / `has-emoji` / `valid-name`; badge added 2026-08-24 | **Blocker is now the Glama quality score**, not the badge. The bot's 2026-08-24 comment asks a human to confirm the server has been evaluated. Claim the Glama listing first, then reply on the PR pointing at the score page |
 | M8ven Trust Index | Aggregator / security scanner | ✅ **Verified** 2026-09-05 via `git_commits` against commit `4666dad`. Listing: `https://m8ven.ai/mcp/rooquiz-rooquiz-mcp-14mq8p`. Grade **C · Emerging, 74/100** — M8ven caps new projects at C until adoption is earned, and it grades the *manifest repo* since the server itself is closed source ("we have no way to read this server ourselves"). Verified-only badge (no grade) is in the README | Two open findings, both about this repo, not the hosted server: (1) "secret credentials may flow to a network call" — `ROOQUIZ_TOKEN` read from `process.env`, destination unprovable to a scanner; (2) no test files. Claiming the listing unlocks the per-finding dispute flow and the "1 concrete improvement". Re-check the grade after PulseMCP/mcp.so land |
+| LobeHub Market | Aggregator | ✅ **Claimed and updated** 2026-09-22. The listing was already auto-crawled as `rooquiz-rooquiz-mcp` (v1.0.0, category `gaming-entertainment`, all capabilities `false`), so this was a **claim + update**, not a fresh publish. Now v1.1.0, category `business`, 48 tools declared, and owner-updated versions are trusted — the "Unvalidated" badge is gone. Page: `https://lobehub.com/mcp/rooquiz-rooquiz-mcp` | Re-run `lhm plugin update` on every release; regenerate the `tools` array first (see below) |
 | mcp.so | Aggregator | ⬜ Not submitted (`/server/rooquiz-mcp` still 404 on 2026-08-28) | Open a GitHub issue; copy below |
 | Claude Connectors Directory | Client directory | 🔴 Blocked | Needs a Team/Enterprise org plus the prerequisites below |
 | ChatGPT Apps Directory | Client directory | 🔴 Blocked | Needs identity + domain verification plus the prerequisites below |
@@ -192,6 +193,53 @@ would show a connected server whose every tool call fails.
 ### PulseMCP
 
 Its submission page states that publishing to the official MCP Registry is the best first step, and we are already on the registry. We waited for automatic ingest from 2026-08-22; the window closed 2026-09-05 with no listing observed, so **submit manually** at https://www.pulsemcp.com/submit. The old check command is dead — `v0beta` was fully sunset in September 2026 and `v0.1` needs an `X-API-Key` (request one from hello@pulsemcp.com).
+
+### LobeHub Market
+
+Managed with the `lhm` CLI (`@lobehub/market-cli`, needs Node >= 22). `login` and `github connect` are
+browser flows that cannot be automated; everything else is scriptable.
+
+```bash
+npx -y @lobehub/market-cli auth status --output json   # probe first
+npx -y @lobehub/market-cli login                       # browser, human required
+npx -y @lobehub/market-cli github connect              # browser, needs push access to rooquiz/rooquiz-mcp
+npx -y @lobehub/market-cli plugin update --dir /absolute/path/to/rooquiz-mcp
+npx -y @lobehub/market-cli plugin list --output json    # verify
+```
+
+The owner declaration is `lhm.plugin.json` in this repo. Reusing the same `version` merges in place;
+a new `version` cuts a release. Omitted fields keep their current value, which is why `icon` is absent
+— the listing keeps the GitHub avatar.
+
+`en-US` is the source locale and is stored verbatim. Every other locale is machine-translated from it
+in the background, except the ones declared in `localizations`: **zh-CN and zh-TW are hand-written**
+and owner-provided locales are authoritative — neither the translator nor a re-crawl overwrites them.
+The other 12 locales are LobeHub's translations. Edit a locale without touching the manifest with
+`lhm plugin i18n set <identifier> --locale <locale> --name ... --description ...`, and inspect the
+current state with `lhm plugin i18n list rooquiz-rooquiz-mcp --output json`.
+
+`lhm plugin init` cannot generate the manifest for us: it introspects the endpoint directly and
+`https://payload.rooquiz.com/api/mcp` answers `Missing Bearer token`. The `tools` array is dumped from
+the payload repo instead, which is fresher than `bin/introspection.json` (that snapshot needs a live
+token, so it lags). Two traps in that dump: `tsx -e` does not resolve the `@/` path alias — it exits 0
+and writes nothing — so it has to go through a real script file, and the script must write to a file
+rather than stdout, because i18next prints a banner to stdout and corrupts the JSON.
+
+```bash
+cd ../rooquiz-payload
+cat > /tmp/dump-tools.mts <<'EOF'
+import { writeFileSync } from 'node:fs'
+import { MCP_TOOLS } from '@/integrations/mcp/tools'
+writeFileSync(
+  process.argv[2],
+  JSON.stringify(MCP_TOOLS.map((t) => ({ name: t.name, description: t.description, inputSchema: t.inputSchema }))),
+)
+EOF
+npx tsx --tsconfig tsconfig.json /tmp/dump-tools.mts /tmp/tools.json
+```
+
+Then splice `/tmp/tools.json` into `lhm.plugin.json` as `tools` and bump `version`. Category must be
+one of the 15 slugs in `https://lobehub.com/sitemap/mcp-category.xml`.
 
 ## Prerequisites for the client directories
 
