@@ -62,9 +62,10 @@ mcp-publisher publish
 curl -s "https://registry.modelcontextprotocol.io/v0/servers?search=com.rooquiz/rooquiz-mcp"
 ```
 
-- To update metadata or ship a new version: edit `server.json` (bump `version`), then `login` + `publish` again.
-- Keep `server.json`'s `version` in sync with `SERVER_INFO.version` in the code (`rooquiz-payload/src/app/api/mcp/route.ts`).
+- To update metadata or ship a new version: edit `server.json` (bump `version`), then `login` + `publish` again. The full checklist is in [§ Releasing](#releasing).
+- `server.json`'s `version` is **this bridge's** version — it tracks `package.json`, not the hosted server. See [§ Releasing](#releasing) for why.
 - `description` has a **100-character limit** — watch it when rewriting copy.
+- The registry keeps every version. Publishing 1.1.0 left 1.0.0 in place as `active` with `isLatest: false`, so a version number can never be reused or walked back.
 
 ### Alternative: HTTP verification
 
@@ -185,6 +186,56 @@ Troubleshooting:
   `WWW-Authenticate`, and both well-known endpoints must be anonymously accessible.
 
 ---
+
+## Releasing
+
+A release is one `release: X.Y.Z` commit plus two publishes. There is no npm step — this
+package has never been published to npm (`registry.npmjs.org/rooquiz-mcp` answers `Not found`);
+the bridge is consumed from this repo and from the Dockerfile Glama builds.
+
+### Which version is `X.Y.Z`?
+
+**The bridge's.** `server.json`, `package.json` and `lhm.plugin.json` all carry the same number,
+and `CHANGELOG.md` documents it. The hosted server at `payload.rooquiz.com` has its **own**
+version in `SERVER_INFO` (`rooquiz-payload/src/app/api/mcp/route.ts`) and moves on its own
+schedule — as of 2026-09-22 it still reports `1.0.0` while this bridge is at `1.1.0`, and that
+is expected, not drift to be fixed.
+
+An earlier revision of this file told you to keep the two in sync. That rule was wrong and is
+gone: the registry already has `com.rooquiz/rooquiz-mcp` at 1.1.0 and a version can never be
+walked back, so `server.json` has to keep following `package.json`.
+
+### Checklist
+
+1. `CHANGELOG.md` — turn `## Unreleased` into `## X.Y.Z — YYYY-MM-DD`.
+2. Bump `version` in **three** files: `package.json`, `server.json`, `lhm.plugin.json`.
+   Forgetting `lhm.plugin.json` silently strands the LobeHub listing on the old version.
+3. If the hosted server's tools changed, regenerate the tokenless snapshot:
+   `ROOQUIZ_TOKEN=rqp_live_… node scripts/snapshot-tools.mjs`.
+4. If the tool set changed, re-dump `lhm.plugin.json`'s `tools` array — command in
+   `LISTINGS.md` § LobeHub Market.
+5. `git commit -am "release: X.Y.Z"`. (Tags are not part of the flow: `v1.0.1` has one,
+   1.1.0 does not.)
+6. Publish to the official MCP Registry:
+
+   ```bash
+   PRIV=$(openssl pkey -in key.pem -noout -text | grep -A3 'priv:' | tail -n +2 | tr -d ' :\n')
+   mcp-publisher login dns --domain rooquiz.com --private-key "$PRIV"; unset PRIV
+   mcp-publisher publish
+   ```
+
+   Use Homebrew's OpenSSL 3 if the system one is LibreSSL — it cannot read Ed25519 keys.
+   Never let the hex key reach a log or a shell history file.
+
+7. Publish to LobeHub: `npx -y @lobehub/market-cli plugin update --dir <absolute path to this repo>`.
+8. Verify both:
+
+   ```bash
+   curl -s "https://registry.modelcontextprotocol.io/v0/servers?search=com.rooquiz/rooquiz-mcp"
+   npx -y @lobehub/market-cli plugin list --output json
+   ```
+
+Smithery, Glama and mcp.so re-crawl on their own and need nothing per release.
 
 ## Security notes
 
