@@ -65,7 +65,7 @@ curl -s "https://registry.modelcontextprotocol.io/v0/servers?search=com.rooquiz/
 - To update metadata or ship a new version: edit `server.json` (bump `version`), then `login` + `publish` again. The full checklist is in [§ Releasing](#releasing).
 - `server.json`'s `version` is **this bridge's** version — it tracks `package.json`, not the hosted server. See [§ Releasing](#releasing) for why.
 - `description` has a **100-character limit** — watch it when rewriting copy.
-- The registry keeps every version. Publishing 1.1.0 left 1.0.0 in place as `active` with `isLatest: false`, so a version number can never be reused or walked back.
+- A published version is immutable and can never be reused — see [§ Releasing](#the-registry-never-lets-you-edit-or-reuse-a-version).
 
 ### Alternative: HTTP verification
 
@@ -205,6 +205,30 @@ An earlier revision of this file told you to keep the two in sync. That rule was
 gone: the registry already has `com.rooquiz/rooquiz-mcp` at 1.1.0 and a version can never be
 walked back, so `server.json` has to keep following `package.json`.
 
+The registry's own Best Practices do not settle it either. They split the advice by server
+shape: a **local** server (a `packages` array) should align with its package version, a
+**remote** server (a `remotes` array) with its *remote API* version. Ours is remote-only and
+`https://payload.rooquiz.com/api/mcp` carries no version segment, so that branch of the advice
+is empty for us. Following `package.json` is the pragmatic answer, not a rule handed down.
+
+### The registry never lets you edit or reuse a version
+
+From the registry's versioning spec: the version string **must be unique for each publication**,
+and once published, the version string *and the rest of the metadata* **cannot be changed**.
+Publishing 1.1.0 left 1.0.0 in place as `active` with `isLatest: false`. Nothing is ever
+overwritten or removed.
+
+So "update the registry entry" always means "publish a new version" — even to fix a typo in
+`description`.
+
+**Do not reach for a prerelease to do it.** The Best Practices suggest semver prereleases such
+as `1.1.0-1` for registry-only metadata updates, but the same page warns that a prerelease
+published *after* its regular version sorts *before* it and is **not** marked `isLatest`. Since
+1.1.0 is already out, publishing `1.1.0-1` would be invisible to everything that reads the
+latest version — including the Glama connector, which auto-ingests from this registry. Use a
+patch bump (`1.1.1`) for a metadata-only correction. Prereleases are only useful *ahead* of the
+regular version they belong to.
+
 ### Checklist
 
 1. `CHANGELOG.md` — turn `## Unreleased` into `## X.Y.Z — YYYY-MM-DD`.
@@ -226,6 +250,11 @@ walked back, so `server.json` has to keep following `package.json`.
 
    Use Homebrew's OpenSSL 3 if the system one is LibreSSL — it cannot read Ed25519 keys.
    Never let the hex key reach a log or a shell history file.
+
+   Run the two commands together: the session written to `~/.config/mcp-publisher/token.json`
+   is good for **five minutes** (a JWT carrying `publish` on `com.rooquiz/*`), so a login left
+   from earlier in the day is always stale. `mcp-publisher validate` needs no session and is
+   worth running before the login.
 
 7. Publish to LobeHub: `npx -y @lobehub/market-cli plugin update --dir <absolute path to this repo>`.
 8. Verify both:
