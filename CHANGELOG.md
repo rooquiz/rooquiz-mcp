@@ -5,6 +5,34 @@ version the bridge reports during a tokenless handshake comes from `bin/introspe
 which mirrors what `https://payload.rooquiz.com/api/mcp` answers `initialize` with and moves
 on its own schedule — see `scripts/snapshot-tools.mjs`.
 
+## Unreleased
+
+### Changed
+
+- **Snapshot regenerated against the hosted server.** `bin/introspection.json` now mirrors
+  what `payload.rooquiz.com` answers as of 2026-09-09: every tool carries a human-readable
+  `title` (top level *and* `annotations.title`, since clients read one position or the
+  other) and a `securitySchemes` declaration of `oauth2` with the `mcp` scope, duplicated
+  into `_meta` because older OpenAI clients read only that copy. `prepare_image_upload`
+  stopped presenting itself as read-only — it signs an upload URL, which is not a read.
+  Corrected output schemas for `get_examinee`, `update_examinee`, `invite_member` and
+  `list_bookings` ride along, as do reworded descriptions on a dozen tools and the server
+  `instructions` served during a tokenless handshake.
+
+- **The preview tools declare the same metadata.** `title` alongside `annotations.title`,
+  and `securitySchemes: [{ "type": "noauth" }]` with the matching `_meta` mirror. On the
+  tokenless path the two halves of `tools/list` now say plainly which is which: the 48
+  hosted tools want OAuth, the four preview tools want nothing.
+
+- **`MCP-Protocol-Version` is sent on every request after the handshake.** Streamable HTTP
+  has carried the header since 2025-03-26 and the hosted server now answers HTTP 400 for a
+  version it does not support. The bridge replays the version the server itself negotiated,
+  never the one the stdio client asked for — the server may have declined that one.
+
+- **A notification ack is `202`, not `204`.** The hosted server moved to the status
+  Streamable HTTP requires. Both are read as an empty ack, so the bridge keeps working
+  against either deployment.
+
 ## 1.1.0 — 2026-09-03
 
 ### Added

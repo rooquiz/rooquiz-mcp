@@ -38,6 +38,17 @@ const QUIZ_BASE = 'https://quizster.app'
 // The one tool that is not derived from a skill: it hands the model a skill's full text.
 const GUIDE_TOOL = 'preview_guide'
 
+/**
+ * Auth policy for the preview tools, in the shape the hosted server publishes for its own:
+ * a `securitySchemes` array plus a byte-identical `_meta` mirror, because OpenAI's older
+ * clients read only the copy under `_meta`.
+ *
+ * Hosted tools declare `oauth2` with the `mcp` scope; these declare `noauth` because they
+ * really do need nothing. On the tokenless path that difference is the whole point — it is
+ * what tells a client which half of the merged list it can actually call.
+ */
+const PREVIEW_SECURITY_SCHEMES = [{ type: 'noauth' }]
+
 // JSON-RPC 2.0 error codes we synthesize locally (the server owns the rest).
 const ERR_PARSE = -32700
 const ERR_INTERNAL = -32603
@@ -183,6 +194,9 @@ function previewTools() {
 
   const tools = skills.map(skill => ({
     name: skill.tool,
+    // The hosted server carries the human-readable name in both places: `title` for clients
+    // on the current spec, `annotations.title` for the ones that only ever read the old one.
+    title: skill.title,
     description:
       `${skill.description}\n\nThis tool takes the finished assessment JSON and nothing else. ` +
       `Unless its field schema, scoring rules and worked example are already in context, call ` +
@@ -217,10 +231,13 @@ function previewTools() {
       idempotentHint: false,
       openWorldHint: true,
     },
+    securitySchemes: PREVIEW_SECURITY_SCHEMES,
+    _meta: { securitySchemes: PREVIEW_SECURITY_SCHEMES },
   }))
 
   tools.push({
     name: GUIDE_TOOL,
+    title: 'Read preview authoring guide',
     description:
       'Authoring guide for one RooQuiz preview assessment type: the full field schema, question ' +
       'types, scoring rules, themes, common mistakes and a worked example. Read the guide for the ' +
@@ -246,6 +263,8 @@ function previewTools() {
       idempotentHint: true,
       openWorldHint: false,
     },
+    securitySchemes: PREVIEW_SECURITY_SCHEMES,
+    _meta: { securitySchemes: PREVIEW_SECURITY_SCHEMES },
   })
 
   return tools
@@ -464,6 +483,17 @@ function isAuthFailure(status, body) {
 }
 
 /**
+ * The version the server settled on during `initialize`, replayed on every later request.
+ *
+ * Streamable HTTP clients from 2025-03-26 on carry `MCP-Protocol-Version`, and a server is
+ * required to answer HTTP 400 for a value it does not support — ours does. Echoing back
+ * what it just negotiated is therefore the only safe thing to send: the stdio client's
+ * requested version never goes on the wire, since the server may well have declined it.
+ * Unset until the handshake lands, and the spec allows the header to be absent.
+ */
+let negotiatedProtocolVersion = null
+
+/**
  * POSTs one message upstream. Returns the HTTP status next to the body because the caller
  * has to tell an auth refusal apart from an ordinary error response.
  */
@@ -476,6 +506,9 @@ async function forward(message) {
   if (TOKEN) {
     headers.Authorization = `Bearer ${TOKEN}`
   }
+  if (negotiatedProtocolVersion) {
+    headers['MCP-Protocol-Version'] = negotiatedProtocolVersion
+  }
 
   const response = await fetch(ENDPOINT, {
     method: 'POST',
@@ -483,8 +516,9 @@ async function forward(message) {
     body: JSON.stringify(message),
   })
 
-  // 204 (notification ack) and empty bodies carry nothing to relay.
-  if (response.status === 204) {
+  // The notification ack carries no body: 202 today, 204 from an older deployment. Either
+  // way there is nothing to relay.
+  if (response.status === 202 || response.status === 204) {
     return { status: response.status, body: null }
   }
   const text = await response.text()
@@ -503,6 +537,9 @@ async function forward(message) {
       ERR_INTERNAL,
       `Upstream returned HTTP ${response.status} with a non-JSON body`
     )
+  }
+  if (message.method === 'initialize' && typeof body?.result?.protocolVersion === 'string') {
+    negotiatedProtocolVersion = body.result.protocolVersion
   }
   return { status: response.status, body: reconcileId(message, body) }
 }
