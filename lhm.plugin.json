@@ -148,7 +148,7 @@
                     "minute",
                     "second"
                   ],
-                  "description": "DateField / TimeField only: picker precision. DateField accepts year | month | day | hour | minute | second (default day; e.g. \"month\" shows a year-month picker, \"second\" a full datetime picker). TimeField accepts only minute | second (default minute). Ignored for other question types."
+                  "description": "DateField / TimeField only: picker precision. DateField accepts year | month | day | hour | minute (default day; e.g. \"month\" shows a year-month picker, \"minute\" a date + hour:minute picker). TimeField accepts only minute | second (default minute). Ignored for other question types."
                 },
                 "min": {
                   "type": "number",
@@ -1382,7 +1382,7 @@
               "minute",
               "second"
             ],
-            "description": "DateField / TimeField only: picker precision. DateField accepts year | month | day | hour | minute | second (default day; e.g. \"month\" shows a year-month picker, \"second\" a full datetime picker). TimeField accepts only minute | second (default minute). Ignored for other question types."
+            "description": "DateField / TimeField only: picker precision. DateField accepts year | month | day | hour | minute (default day; e.g. \"month\" shows a year-month picker, \"minute\" a date + hour:minute picker). TimeField accepts only minute | second (default minute). Ignored for other question types."
           },
           "min": {
             "type": "number",
@@ -1798,7 +1798,7 @@
               "minute",
               "second"
             ],
-            "description": "DateField / TimeField only: picker precision. DateField accepts year | month | day | hour | minute | second (default day; e.g. \"month\" shows a year-month picker, \"second\" a full datetime picker). TimeField accepts only minute | second (default minute). Ignored for other question types."
+            "description": "DateField / TimeField only: picker precision. DateField accepts year | month | day | hour | minute (default day; e.g. \"month\" shows a year-month picker, \"minute\" a date + hour:minute picker). TimeField accepts only minute | second (default minute). Ignored for other question types."
           },
           "min": {
             "type": "number",
@@ -2258,7 +2258,7 @@
               "minute",
               "second"
             ],
-            "description": "DateField / TimeField only: new picker precision. DateField accepts year | month | day | hour | minute | second; TimeField accepts only minute | second. Ignored for other question types."
+            "description": "DateField / TimeField only: new picker precision. DateField accepts year | month | day | hour | minute; TimeField accepts only minute | second. Ignored for other question types."
           },
           "min": {
             "anyOf": [
