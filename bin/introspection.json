@@ -17,7 +17,7 @@
     {
       "name": "create_form",
       "title": "Create form",
-      "description": "Create a form in the team this token is bound to. Pass the questions array and report configuration in one call instead of following up with per-question calls. In the outcome_quiz scene report.outcomes is REQUIRED at create time (TrueFalse votes via trueOutcomes/falseOutcomes). For a scored_quiz with dimensions, define report.dimensionAnalysis.dimensions with codes and formulas over question codes in this same call; a question may override its score for one dimension via choices[i].dimensionScores (TrueFalse: trueDimensionScores/falseDimensionScores). The returned structuredContent.fields carries each question code — read those first, then fill in a scored_quiz report.formula (e.g. q_a + q_b) or a report.dimensionAnalysis via update_form / set_dimension_analysis. Creates the primary language only; add other languages with create_form_translation. Not idempotent: if the call times out it may still have succeeded, so retrying blindly can create a duplicate — check first, then retry only if it is really missing.",
+      "description": "Create a form in the team this token is bound to. Pass the questions array and report configuration in one call instead of following up with per-question calls. In the outcome_quiz scene report.outcomes is REQUIRED at create time (TrueFalse votes via trueOutcomes/falseOutcomes). For a scored_quiz with dimensions, define report.dimensionAnalysis.dimensions with codes and formulas over question codes in this same call; a question may override its score for one dimension via choices[i].dimensionScores (TrueFalse: trueDimensionScores/falseDimensionScores). The returned structuredContent.fields carries each question code — read those first, then fill in a scored_quiz report.formula (e.g. q_a + q_b) or a report.dimensionAnalysis via update_form / set_dimension_analysis. Creates the primary language only; add other languages with create_form_translation. Plan limit: on the Free plan a quiz can hold at most 50 questions (page breaks, statements and carousels do not count; a random-question slot counts as its draw count); Pro is unlimited. Not idempotent: if the call times out it may still have succeeded, so retrying blindly can create a duplicate — check first, then retry only if it is really missing.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -179,10 +179,33 @@
                       "outcomes": {
                         "type": "array",
                         "items": {
-                          "type": "string"
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "code": {
+                                  "type": "string",
+                                  "description": "Outcome code from report.outcomes"
+                                },
+                                "weight": {
+                                  "type": "number",
+                                  "minimum": 0,
+                                  "maximum": 100,
+                                  "description": "Votes this pick casts for the outcome; omit for 1. Decimals allowed, 0 = counts for nothing."
+                                }
+                              },
+                              "required": [
+                                "code"
+                              ],
+                              "additionalProperties": false
+                            }
+                          ]
                         },
                         "maxItems": 50,
-                        "description": "Outcome scene only, and required there on every choice: the outcome codes this choice votes for when selected (each must exist in report.outcomes; a choice may vote for multiple outcomes). Use [] for a neutral choice that votes for nothing. Rejected in the knowledge_quiz / scored_quiz scenes."
+                        "description": "Outcome scene only, and required there on every choice: the outcomes this choice votes for when selected (each code must exist in report.outcomes; a choice may vote for multiple outcomes). Use [] for a neutral choice that votes for nothing. Rejected in the knowledge_quiz / scored_quiz scenes. Each item is an outcome code (one vote) or { code, weight } to make this pick count more or less — e.g. { \"code\": \"lion\", \"weight\": 2 } for a question that should decide the result more than the others. The outcome with the most total votes wins."
                       },
                       "dimensionScores": {
                         "type": "object",
@@ -218,10 +241,33 @@
                             "outcomes": {
                               "type": "array",
                               "items": {
-                                "type": "string"
+                                "anyOf": [
+                                  {
+                                    "type": "string"
+                                  },
+                                  {
+                                    "type": "object",
+                                    "properties": {
+                                      "code": {
+                                        "type": "string",
+                                        "description": "Outcome code from report.outcomes"
+                                      },
+                                      "weight": {
+                                        "type": "number",
+                                        "minimum": 0,
+                                        "maximum": 100,
+                                        "description": "Votes this pick casts for the outcome; omit for 1. Decimals allowed, 0 = counts for nothing."
+                                      }
+                                    },
+                                    "required": [
+                                      "code"
+                                    ],
+                                    "additionalProperties": false
+                                  }
+                                ]
                               },
                               "maxItems": 50,
-                              "description": "Outcome scene only, and required there on every choice: the outcome codes this choice votes for when selected (each must exist in report.outcomes; a choice may vote for multiple outcomes). Use [] for a neutral choice that votes for nothing. Rejected in the knowledge_quiz / scored_quiz scenes."
+                              "description": "Outcome scene only, and required there on every choice: the outcomes this choice votes for when selected (each code must exist in report.outcomes; a choice may vote for multiple outcomes). Use [] for a neutral choice that votes for nothing. Rejected in the knowledge_quiz / scored_quiz scenes. Each item is an outcome code (one vote) or { code, weight } to make this pick count more or less — e.g. { \"code\": \"lion\", \"weight\": 2 } for a question that should decide the result more than the others. The outcome with the most total votes wins."
                             },
                             "dimensionScores": {
                               "type": "object",
@@ -257,10 +303,33 @@
                                   "outcomes": {
                                     "type": "array",
                                     "items": {
-                                      "type": "string"
+                                      "anyOf": [
+                                        {
+                                          "type": "string"
+                                        },
+                                        {
+                                          "type": "object",
+                                          "properties": {
+                                            "code": {
+                                              "type": "string",
+                                              "description": "Outcome code from report.outcomes"
+                                            },
+                                            "weight": {
+                                              "type": "number",
+                                              "minimum": 0,
+                                              "maximum": 100,
+                                              "description": "Votes this pick casts for the outcome; omit for 1. Decimals allowed, 0 = counts for nothing."
+                                            }
+                                          },
+                                          "required": [
+                                            "code"
+                                          ],
+                                          "additionalProperties": false
+                                        }
+                                      ]
                                     },
                                     "maxItems": 50,
-                                    "description": "Outcome scene only, and required there on every choice: the outcome codes this choice votes for when selected (each must exist in report.outcomes; a choice may vote for multiple outcomes). Use [] for a neutral choice that votes for nothing. Rejected in the knowledge_quiz / scored_quiz scenes."
+                                    "description": "Outcome scene only, and required there on every choice: the outcomes this choice votes for when selected (each code must exist in report.outcomes; a choice may vote for multiple outcomes). Use [] for a neutral choice that votes for nothing. Rejected in the knowledge_quiz / scored_quiz scenes. Each item is an outcome code (one vote) or { code, weight } to make this pick count more or less — e.g. { \"code\": \"lion\", \"weight\": 2 } for a question that should decide the result more than the others. The outcome with the most total votes wins."
                                   },
                                   "dimensionScores": {
                                     "type": "object",
@@ -307,18 +376,64 @@
                 "trueOutcomes": {
                   "type": "array",
                   "items": {
-                    "type": "string"
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "code": {
+                            "type": "string",
+                            "description": "Outcome code from report.outcomes"
+                          },
+                          "weight": {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 100,
+                            "description": "Votes this pick casts for the outcome; omit for 1. Decimals allowed, 0 = counts for nothing."
+                          }
+                        },
+                        "required": [
+                          "code"
+                        ],
+                        "additionalProperties": false
+                      }
+                    ]
                   },
                   "maxItems": 50,
-                  "description": "Outcome scene + TrueFalse only (required there together with falseOutcomes): the outcome codes that answering \"true\" votes for. Use [] for a side that votes for nothing. Rejected for other question types / scenes."
+                  "description": "Outcome scene + TrueFalse only (required there together with falseOutcomes): the outcomes that answering \"true\" votes for. Use [] for a side that votes for nothing. Rejected for other question types / scenes. Each item is an outcome code (one vote) or { code, weight } to make this pick count more or less — e.g. { \"code\": \"lion\", \"weight\": 2 } for a question that should decide the result more than the others. The outcome with the most total votes wins."
                 },
                 "falseOutcomes": {
                   "type": "array",
                   "items": {
-                    "type": "string"
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "code": {
+                            "type": "string",
+                            "description": "Outcome code from report.outcomes"
+                          },
+                          "weight": {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 100,
+                            "description": "Votes this pick casts for the outcome; omit for 1. Decimals allowed, 0 = counts for nothing."
+                          }
+                        },
+                        "required": [
+                          "code"
+                        ],
+                        "additionalProperties": false
+                      }
+                    ]
                   },
                   "maxItems": 50,
-                  "description": "Outcome scene + TrueFalse only (required there together with trueOutcomes): the outcome codes that answering \"false\" votes for. Use [] for a side that votes for nothing. Rejected for other question types / scenes."
+                  "description": "Outcome scene + TrueFalse only (required there together with trueOutcomes): the outcomes that answering \"false\" votes for. Use [] for a side that votes for nothing. Rejected for other question types / scenes. Each item is an outcome code (one vote) or { code, weight } to make this pick count more or less — e.g. { \"code\": \"lion\", \"weight\": 2 } for a question that should decide the result more than the others. The outcome with the most total votes wins."
                 },
                 "trueDimensionScores": {
                   "type": "object",
@@ -347,6 +462,10 @@
                   "type": "string",
                   "maxLength": 100,
                   "description": "TrueFalse only: custom display text for the \"false\" option (e.g. \"No\" / \"Disagree\"). Ignored for other question types. Leave empty to fall back to the built-in default for the form language (\"Incorrect\" in English forms). Does not change the stored answer value, which stays \"false\"."
+                },
+                "collectOnly": {
+                  "type": "boolean",
+                  "description": "scored_quiz scene only, for SingleCheck / MultiCheck / DropDown / Cascade / TrueFalse / Rate: collect the answer as data without scoring it (e.g. age range, industry, how they heard about you). A collect-only question produces no score, cannot be referenced by report.formula or dimension formulas, and is shown with plain radio buttons / checkboxes instead of A/B/C letter badges. Do not pass any scoring input (choices[i].score, dimensionScores, score, correctAnswer) together with it. Rejected in other scenes."
                 },
                 "content": {
                   "type": "string",
@@ -463,7 +582,7 @@
           },
           "report": {
             "type": "object",
-            "description": "Report configuration. knowledge_quiz / scored_quiz: overallAnalysis fields are flat at the top level and dimensionAnalysis is nested (strongly recommended for the scored_quiz scene, optional for the knowledge_quiz scene). outcome: only the outcomes key is allowed, and it is required at create time.",
+            "description": "Report configuration. knowledge_quiz / scored_quiz: overallAnalysis fields are flat at the top level and dimensionAnalysis is nested (strongly recommended for the scored_quiz scene, optional for the knowledge_quiz scene). outcome: only the outcomes key (required at create time) and sectionOrder are allowed.",
             "properties": {
               "title": {
                 "type": "string",
@@ -702,6 +821,20 @@
                 },
                 "minItems": 1,
                 "maxItems": 50
+              },
+              "sectionOrder": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "dimension",
+                    "booking",
+                    "feedback"
+                  ]
+                },
+                "maxItems": 3,
+                "uniqueItems": true,
+                "description": "Any scene: the order of the movable result-page sections — dimension (dimension breakdown / radar), booking (the 1:1 call block), feedback (the feedback block). The overall score / outcome always stays on top and the answer review / share area at the bottom. Keys you leave out keep their default relative order after the ones you list; [] restores the default (dimension, booking, feedback). Lead with booking when the quiz exists to book calls."
               }
             },
             "additionalProperties": false
@@ -1265,7 +1398,7 @@
           },
           "report": {
             "type": "object",
-            "description": "Report configuration, merged by sub-key into form.report: passing overallAnalysis fields (title/formula/levels/summaryTemplate/suggestionsTemplate/hideOverallScore) replaces overallAnalysis; passing dimensionAnalysis replaces the dimension list (codes are kept by code or by name, omitted title / radar settings are preserved; an empty dimensions array clears it; a dimension still referenced by a question's dimensionScores or by report.formula cannot be removed); in the outcome_quiz scene passing outcomes replaces the outcome list (matched by code, existing images kept; cannot be emptied, and removing an outcome still referenced by question votes is rejected); unspecified parts are kept. Common usage: either set custom question codes in create_form and pass report.formula / dimensionAnalysis in the same call, or call create_form first to get the auto-generated field codes, then update_form to fill in report.formula and/or dimensionAnalysis (which reference question codes).",
+            "description": "Report configuration, merged by sub-key into form.report: passing overallAnalysis fields (title/formula/levels/summaryTemplate/suggestionsTemplate/hideOverallScore) replaces overallAnalysis; passing dimensionAnalysis replaces the dimension list (codes are kept by code or by name, omitted title / radar settings are preserved; an empty dimensions array clears it; a dimension still referenced by a question's dimensionScores or by report.formula cannot be removed); in the outcome_quiz scene passing outcomes replaces the outcome list (matched by code, existing images kept; cannot be emptied, and removing an outcome still referenced by question votes is rejected); passing sectionOrder replaces the result-page section order ([] restores the default); unspecified parts are kept. Common usage: either set custom question codes in create_form and pass report.formula / dimensionAnalysis in the same call, or call create_form first to get the auto-generated field codes, then update_form to fill in report.formula and/or dimensionAnalysis (which reference question codes).",
             "properties": {
               "title": {
                 "type": "string",
@@ -1504,6 +1637,20 @@
                 },
                 "minItems": 1,
                 "maxItems": 50
+              },
+              "sectionOrder": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "dimension",
+                    "booking",
+                    "feedback"
+                  ]
+                },
+                "maxItems": 3,
+                "uniqueItems": true,
+                "description": "Any scene: the order of the movable result-page sections — dimension (dimension breakdown / radar), booking (the 1:1 call block), feedback (the feedback block). The overall score / outcome always stays on top and the answer review / share area at the bottom. Keys you leave out keep their default relative order after the ones you list; [] restores the default (dimension, booking, feedback). Lead with booking when the quiz exists to book calls."
               }
             },
             "additionalProperties": false
@@ -2129,7 +2276,7 @@
     {
       "name": "add_question",
       "title": "Add question",
-      "description": "Append an item to the end of a form. `type` is a question type, Breaker (page break — only formId + type are needed, other fields are ignored) or a display block (Statement / Swiper). Question types: SingleCheck / MultiCheck / TrueFalse; FillBlank (free text — scored in quiz via correctAnswer, an unscored data-collection field in scored_quiz); DropDown (single or multiple via `multiple` — prefer it over SingleCheck/MultiCheck past 20 choices); Cascade (hierarchical via choices[i].children, scored_quiz only); Ordering (quiz only, order-sensitive grading); DateField / TimeField (unscored data-collection fields, scored_quiz only, no correctAnswer/score); NumberField (quiz: optional numeric correctAnswer + score; scored_quiz: the submitted number feeds report formulas); Rate (scored_quiz only, the submitted 1..steps rating is the question score unless per-star scores are set in the web app). Display blocks carry no answer: { type: \"Statement\", content } renders a rich-text passage (intro, section lead-in, disclaimer) and { type: \"Swiper\", items } an image carousel; both work in every scene. Configure random_knowledge_quiz question banks in the web app. Not idempotent: if the call times out it may still have succeeded, so retrying blindly can create a duplicate — check first, then retry only if it is really missing.",
+      "description": "Append an item to the end of a form. `type` is a question type, Breaker (page break — only formId + type are needed, other fields are ignored) or a display block (Statement / Swiper). Question types: SingleCheck / MultiCheck / TrueFalse; FillBlank (free text — scored in quiz via correctAnswer, an unscored data-collection field in scored_quiz); DropDown (single or multiple via `multiple` — prefer it over SingleCheck/MultiCheck past 20 choices); Cascade (hierarchical via choices[i].children, scored_quiz only); Ordering (quiz only, order-sensitive grading); DateField / TimeField (unscored data-collection fields, scored_quiz only, no correctAnswer/score); NumberField (quiz: optional numeric correctAnswer + score; scored_quiz: the submitted number feeds report formulas); Rate (scored_quiz only, the submitted 1..steps rating is the question score unless per-star scores are set in the web app). Display blocks carry no answer: { type: \"Statement\", content } renders a rich-text passage (intro, section lead-in, disclaimer) and { type: \"Swiper\", items } an image carousel; both work in every scene. Configure random_knowledge_quiz question banks in the web app. Plan limit: on the Free plan a quiz can hold at most 50 questions (page breaks, statements and carousels do not count; a random-question slot counts as its draw count); Pro is unlimited. Not idempotent: if the call times out it may still have succeeded, so retrying blindly can create a duplicate — check first, then retry only if it is really missing.",
       "inputSchema": {
         "type": "object",
         "description": "FIELD APPLICABILITY — `type` is the only field the schema always requires; `type` (plus the form scene) decides which of the remaining fields apply, and one that does not apply is either rejected with an explanatory error or ignored, so never pass it. Breaker (page break) takes nothing but `type`. Display blocks collect no answer, are never scored and are allowed in every scene: Statement takes `content` (the rich text IS the block) and Swiper takes `items` (an image carousel); both also accept an optional `name`, a label used by the web editor only, and neither takes any question field. Every question type takes `name` (required) plus the optional `code` / `description` / `explain` / `required`. Type-specific fields: SingleCheck / MultiCheck / DropDown / Ordering / Cascade need `choices` (Cascade nests via choices[i].children; DropDown also takes `multiple`; Ordering also takes `shuffle`); TrueFalse has a fixed pair of options and takes `trueLabel` / `falseLabel` instead of `choices`; DateField / TimeField take `precision`; NumberField takes `min` / `max` / `unit` / `decimalPlaces`; Rate takes `steps` / `words`. Scene rules for scoring: quiz — `correctAnswer` plus `score` > 0 are REQUIRED on SingleCheck / MultiCheck / DropDown / Ordering, optional on FillBlank (add `aiMatch` to have AI grade it instead of exact string match) and NumberField (omit both and the question is just a data-collection field), and rejected on DateField / TimeField; scored_quiz — score each option via choices[i].score; `correctAnswer` / `score` are rejected on NumberField and Rate (the submitted value is the score) and on FillBlank (free text is collected only, never scored); outcome — nothing is scored: `correctAnswer` / `score` / `aiMatch` are all rejected, every choice needs `outcomes` (TrueFalse votes via `trueOutcomes` / `falseOutcomes`). Type availability per scene: Ordering is knowledge_quiz-only; FillBlank works in knowledge_quiz (optionally scored) and in scored_quiz (data-collection only — its answer never feeds a score or a report formula); Cascade, Rate, DateField and TimeField are scored_quiz-only; and the outcome_quiz scene accepts only SingleCheck / MultiCheck / DropDown / TrueFalse / Breaker.",
@@ -2253,10 +2400,33 @@
                 "outcomes": {
                   "type": "array",
                   "items": {
-                    "type": "string"
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "code": {
+                            "type": "string",
+                            "description": "Outcome code from report.outcomes"
+                          },
+                          "weight": {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 100,
+                            "description": "Votes this pick casts for the outcome; omit for 1. Decimals allowed, 0 = counts for nothing."
+                          }
+                        },
+                        "required": [
+                          "code"
+                        ],
+                        "additionalProperties": false
+                      }
+                    ]
                   },
                   "maxItems": 50,
-                  "description": "Outcome scene only, and required there on every choice: the outcome codes this choice votes for when selected (each must exist in report.outcomes; a choice may vote for multiple outcomes). Use [] for a neutral choice that votes for nothing. Rejected in the knowledge_quiz / scored_quiz scenes."
+                  "description": "Outcome scene only, and required there on every choice: the outcomes this choice votes for when selected (each code must exist in report.outcomes; a choice may vote for multiple outcomes). Use [] for a neutral choice that votes for nothing. Rejected in the knowledge_quiz / scored_quiz scenes. Each item is an outcome code (one vote) or { code, weight } to make this pick count more or less — e.g. { \"code\": \"lion\", \"weight\": 2 } for a question that should decide the result more than the others. The outcome with the most total votes wins."
                 },
                 "dimensionScores": {
                   "type": "object",
@@ -2292,10 +2462,33 @@
                       "outcomes": {
                         "type": "array",
                         "items": {
-                          "type": "string"
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "code": {
+                                  "type": "string",
+                                  "description": "Outcome code from report.outcomes"
+                                },
+                                "weight": {
+                                  "type": "number",
+                                  "minimum": 0,
+                                  "maximum": 100,
+                                  "description": "Votes this pick casts for the outcome; omit for 1. Decimals allowed, 0 = counts for nothing."
+                                }
+                              },
+                              "required": [
+                                "code"
+                              ],
+                              "additionalProperties": false
+                            }
+                          ]
                         },
                         "maxItems": 50,
-                        "description": "Outcome scene only, and required there on every choice: the outcome codes this choice votes for when selected (each must exist in report.outcomes; a choice may vote for multiple outcomes). Use [] for a neutral choice that votes for nothing. Rejected in the knowledge_quiz / scored_quiz scenes."
+                        "description": "Outcome scene only, and required there on every choice: the outcomes this choice votes for when selected (each code must exist in report.outcomes; a choice may vote for multiple outcomes). Use [] for a neutral choice that votes for nothing. Rejected in the knowledge_quiz / scored_quiz scenes. Each item is an outcome code (one vote) or { code, weight } to make this pick count more or less — e.g. { \"code\": \"lion\", \"weight\": 2 } for a question that should decide the result more than the others. The outcome with the most total votes wins."
                       },
                       "dimensionScores": {
                         "type": "object",
@@ -2331,10 +2524,33 @@
                             "outcomes": {
                               "type": "array",
                               "items": {
-                                "type": "string"
+                                "anyOf": [
+                                  {
+                                    "type": "string"
+                                  },
+                                  {
+                                    "type": "object",
+                                    "properties": {
+                                      "code": {
+                                        "type": "string",
+                                        "description": "Outcome code from report.outcomes"
+                                      },
+                                      "weight": {
+                                        "type": "number",
+                                        "minimum": 0,
+                                        "maximum": 100,
+                                        "description": "Votes this pick casts for the outcome; omit for 1. Decimals allowed, 0 = counts for nothing."
+                                      }
+                                    },
+                                    "required": [
+                                      "code"
+                                    ],
+                                    "additionalProperties": false
+                                  }
+                                ]
                               },
                               "maxItems": 50,
-                              "description": "Outcome scene only, and required there on every choice: the outcome codes this choice votes for when selected (each must exist in report.outcomes; a choice may vote for multiple outcomes). Use [] for a neutral choice that votes for nothing. Rejected in the knowledge_quiz / scored_quiz scenes."
+                              "description": "Outcome scene only, and required there on every choice: the outcomes this choice votes for when selected (each code must exist in report.outcomes; a choice may vote for multiple outcomes). Use [] for a neutral choice that votes for nothing. Rejected in the knowledge_quiz / scored_quiz scenes. Each item is an outcome code (one vote) or { code, weight } to make this pick count more or less — e.g. { \"code\": \"lion\", \"weight\": 2 } for a question that should decide the result more than the others. The outcome with the most total votes wins."
                             },
                             "dimensionScores": {
                               "type": "object",
@@ -2381,18 +2597,64 @@
           "trueOutcomes": {
             "type": "array",
             "items": {
-              "type": "string"
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "description": "Outcome code from report.outcomes"
+                    },
+                    "weight": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 100,
+                      "description": "Votes this pick casts for the outcome; omit for 1. Decimals allowed, 0 = counts for nothing."
+                    }
+                  },
+                  "required": [
+                    "code"
+                  ],
+                  "additionalProperties": false
+                }
+              ]
             },
             "maxItems": 50,
-            "description": "Outcome scene + TrueFalse only (required there together with falseOutcomes): the outcome codes that answering \"true\" votes for. Use [] for a side that votes for nothing. Rejected for other question types / scenes."
+            "description": "Outcome scene + TrueFalse only (required there together with falseOutcomes): the outcomes that answering \"true\" votes for. Use [] for a side that votes for nothing. Rejected for other question types / scenes. Each item is an outcome code (one vote) or { code, weight } to make this pick count more or less — e.g. { \"code\": \"lion\", \"weight\": 2 } for a question that should decide the result more than the others. The outcome with the most total votes wins."
           },
           "falseOutcomes": {
             "type": "array",
             "items": {
-              "type": "string"
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "description": "Outcome code from report.outcomes"
+                    },
+                    "weight": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 100,
+                      "description": "Votes this pick casts for the outcome; omit for 1. Decimals allowed, 0 = counts for nothing."
+                    }
+                  },
+                  "required": [
+                    "code"
+                  ],
+                  "additionalProperties": false
+                }
+              ]
             },
             "maxItems": 50,
-            "description": "Outcome scene + TrueFalse only (required there together with trueOutcomes): the outcome codes that answering \"false\" votes for. Use [] for a side that votes for nothing. Rejected for other question types / scenes."
+            "description": "Outcome scene + TrueFalse only (required there together with trueOutcomes): the outcomes that answering \"false\" votes for. Use [] for a side that votes for nothing. Rejected for other question types / scenes. Each item is an outcome code (one vote) or { code, weight } to make this pick count more or less — e.g. { \"code\": \"lion\", \"weight\": 2 } for a question that should decide the result more than the others. The outcome with the most total votes wins."
           },
           "trueDimensionScores": {
             "type": "object",
@@ -2421,6 +2683,10 @@
             "type": "string",
             "maxLength": 100,
             "description": "TrueFalse only: custom display text for the \"false\" option (e.g. \"No\" / \"Disagree\"). Ignored for other question types. Leave empty to fall back to the built-in default for the form language (\"Incorrect\" in English forms). Does not change the stored answer value, which stays \"false\"."
+          },
+          "collectOnly": {
+            "type": "boolean",
+            "description": "scored_quiz scene only, for SingleCheck / MultiCheck / DropDown / Cascade / TrueFalse / Rate: collect the answer as data without scoring it (e.g. age range, industry, how they heard about you). A collect-only question produces no score, cannot be referenced by report.formula or dimension formulas, and is shown with plain radio buttons / checkboxes instead of A/B/C letter badges. Do not pass any scoring input (choices[i].score, dimensionScores, score, correctAnswer) together with it. Rejected in other scenes."
           },
           "content": {
             "type": "string",
@@ -2582,7 +2848,7 @@
     {
       "name": "insert_question",
       "title": "Insert question",
-      "description": "Insert an item at a specific position: a question, a page break (Breaker) or a display block (Statement with `content` / Swiper with `items`). Use after / before to reference an existing field code (from get_form's field.code). To insert at the very front: before references the first field's code. To insert at the end, use add_question. Not idempotent: if the call times out it may still have succeeded, so retrying blindly can create a duplicate — check first, then retry only if it is really missing.",
+      "description": "Insert an item at a specific position: a question, a page break (Breaker) or a display block (Statement with `content` / Swiper with `items`). Use after / before to reference an existing field code (from get_form's field.code). To insert at the very front: before references the first field's code. To insert at the end, use add_question. Plan limit: on the Free plan a quiz can hold at most 50 questions (page breaks, statements and carousels do not count; a random-question slot counts as its draw count); Pro is unlimited. Not idempotent: if the call times out it may still have succeeded, so retrying blindly can create a duplicate — check first, then retry only if it is really missing.",
       "inputSchema": {
         "type": "object",
         "description": "FIELD APPLICABILITY — `type` is the only field the schema always requires; `type` (plus the form scene) decides which of the remaining fields apply, and one that does not apply is either rejected with an explanatory error or ignored, so never pass it. Breaker (page break) takes nothing but `type`. Display blocks collect no answer, are never scored and are allowed in every scene: Statement takes `content` (the rich text IS the block) and Swiper takes `items` (an image carousel); both also accept an optional `name`, a label used by the web editor only, and neither takes any question field. Every question type takes `name` (required) plus the optional `code` / `description` / `explain` / `required`. Type-specific fields: SingleCheck / MultiCheck / DropDown / Ordering / Cascade need `choices` (Cascade nests via choices[i].children; DropDown also takes `multiple`; Ordering also takes `shuffle`); TrueFalse has a fixed pair of options and takes `trueLabel` / `falseLabel` instead of `choices`; DateField / TimeField take `precision`; NumberField takes `min` / `max` / `unit` / `decimalPlaces`; Rate takes `steps` / `words`. Scene rules for scoring: quiz — `correctAnswer` plus `score` > 0 are REQUIRED on SingleCheck / MultiCheck / DropDown / Ordering, optional on FillBlank (add `aiMatch` to have AI grade it instead of exact string match) and NumberField (omit both and the question is just a data-collection field), and rejected on DateField / TimeField; scored_quiz — score each option via choices[i].score; `correctAnswer` / `score` are rejected on NumberField and Rate (the submitted value is the score) and on FillBlank (free text is collected only, never scored); outcome — nothing is scored: `correctAnswer` / `score` / `aiMatch` are all rejected, every choice needs `outcomes` (TrueFalse votes via `trueOutcomes` / `falseOutcomes`). Type availability per scene: Ordering is knowledge_quiz-only; FillBlank works in knowledge_quiz (optionally scored) and in scored_quiz (data-collection only — its answer never feeds a score or a report formula); Cascade, Rate, DateField and TimeField are scored_quiz-only; and the outcome_quiz scene accepts only SingleCheck / MultiCheck / DropDown / TrueFalse / Breaker.",
@@ -2714,10 +2980,33 @@
                 "outcomes": {
                   "type": "array",
                   "items": {
-                    "type": "string"
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "code": {
+                            "type": "string",
+                            "description": "Outcome code from report.outcomes"
+                          },
+                          "weight": {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 100,
+                            "description": "Votes this pick casts for the outcome; omit for 1. Decimals allowed, 0 = counts for nothing."
+                          }
+                        },
+                        "required": [
+                          "code"
+                        ],
+                        "additionalProperties": false
+                      }
+                    ]
                   },
                   "maxItems": 50,
-                  "description": "Outcome scene only, and required there on every choice: the outcome codes this choice votes for when selected (each must exist in report.outcomes; a choice may vote for multiple outcomes). Use [] for a neutral choice that votes for nothing. Rejected in the knowledge_quiz / scored_quiz scenes."
+                  "description": "Outcome scene only, and required there on every choice: the outcomes this choice votes for when selected (each code must exist in report.outcomes; a choice may vote for multiple outcomes). Use [] for a neutral choice that votes for nothing. Rejected in the knowledge_quiz / scored_quiz scenes. Each item is an outcome code (one vote) or { code, weight } to make this pick count more or less — e.g. { \"code\": \"lion\", \"weight\": 2 } for a question that should decide the result more than the others. The outcome with the most total votes wins."
                 },
                 "dimensionScores": {
                   "type": "object",
@@ -2753,10 +3042,33 @@
                       "outcomes": {
                         "type": "array",
                         "items": {
-                          "type": "string"
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "code": {
+                                  "type": "string",
+                                  "description": "Outcome code from report.outcomes"
+                                },
+                                "weight": {
+                                  "type": "number",
+                                  "minimum": 0,
+                                  "maximum": 100,
+                                  "description": "Votes this pick casts for the outcome; omit for 1. Decimals allowed, 0 = counts for nothing."
+                                }
+                              },
+                              "required": [
+                                "code"
+                              ],
+                              "additionalProperties": false
+                            }
+                          ]
                         },
                         "maxItems": 50,
-                        "description": "Outcome scene only, and required there on every choice: the outcome codes this choice votes for when selected (each must exist in report.outcomes; a choice may vote for multiple outcomes). Use [] for a neutral choice that votes for nothing. Rejected in the knowledge_quiz / scored_quiz scenes."
+                        "description": "Outcome scene only, and required there on every choice: the outcomes this choice votes for when selected (each code must exist in report.outcomes; a choice may vote for multiple outcomes). Use [] for a neutral choice that votes for nothing. Rejected in the knowledge_quiz / scored_quiz scenes. Each item is an outcome code (one vote) or { code, weight } to make this pick count more or less — e.g. { \"code\": \"lion\", \"weight\": 2 } for a question that should decide the result more than the others. The outcome with the most total votes wins."
                       },
                       "dimensionScores": {
                         "type": "object",
@@ -2792,10 +3104,33 @@
                             "outcomes": {
                               "type": "array",
                               "items": {
-                                "type": "string"
+                                "anyOf": [
+                                  {
+                                    "type": "string"
+                                  },
+                                  {
+                                    "type": "object",
+                                    "properties": {
+                                      "code": {
+                                        "type": "string",
+                                        "description": "Outcome code from report.outcomes"
+                                      },
+                                      "weight": {
+                                        "type": "number",
+                                        "minimum": 0,
+                                        "maximum": 100,
+                                        "description": "Votes this pick casts for the outcome; omit for 1. Decimals allowed, 0 = counts for nothing."
+                                      }
+                                    },
+                                    "required": [
+                                      "code"
+                                    ],
+                                    "additionalProperties": false
+                                  }
+                                ]
                               },
                               "maxItems": 50,
-                              "description": "Outcome scene only, and required there on every choice: the outcome codes this choice votes for when selected (each must exist in report.outcomes; a choice may vote for multiple outcomes). Use [] for a neutral choice that votes for nothing. Rejected in the knowledge_quiz / scored_quiz scenes."
+                              "description": "Outcome scene only, and required there on every choice: the outcomes this choice votes for when selected (each code must exist in report.outcomes; a choice may vote for multiple outcomes). Use [] for a neutral choice that votes for nothing. Rejected in the knowledge_quiz / scored_quiz scenes. Each item is an outcome code (one vote) or { code, weight } to make this pick count more or less — e.g. { \"code\": \"lion\", \"weight\": 2 } for a question that should decide the result more than the others. The outcome with the most total votes wins."
                             },
                             "dimensionScores": {
                               "type": "object",
@@ -2842,18 +3177,64 @@
           "trueOutcomes": {
             "type": "array",
             "items": {
-              "type": "string"
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "description": "Outcome code from report.outcomes"
+                    },
+                    "weight": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 100,
+                      "description": "Votes this pick casts for the outcome; omit for 1. Decimals allowed, 0 = counts for nothing."
+                    }
+                  },
+                  "required": [
+                    "code"
+                  ],
+                  "additionalProperties": false
+                }
+              ]
             },
             "maxItems": 50,
-            "description": "Outcome scene + TrueFalse only (required there together with falseOutcomes): the outcome codes that answering \"true\" votes for. Use [] for a side that votes for nothing. Rejected for other question types / scenes."
+            "description": "Outcome scene + TrueFalse only (required there together with falseOutcomes): the outcomes that answering \"true\" votes for. Use [] for a side that votes for nothing. Rejected for other question types / scenes. Each item is an outcome code (one vote) or { code, weight } to make this pick count more or less — e.g. { \"code\": \"lion\", \"weight\": 2 } for a question that should decide the result more than the others. The outcome with the most total votes wins."
           },
           "falseOutcomes": {
             "type": "array",
             "items": {
-              "type": "string"
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "description": "Outcome code from report.outcomes"
+                    },
+                    "weight": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 100,
+                      "description": "Votes this pick casts for the outcome; omit for 1. Decimals allowed, 0 = counts for nothing."
+                    }
+                  },
+                  "required": [
+                    "code"
+                  ],
+                  "additionalProperties": false
+                }
+              ]
             },
             "maxItems": 50,
-            "description": "Outcome scene + TrueFalse only (required there together with trueOutcomes): the outcome codes that answering \"false\" votes for. Use [] for a side that votes for nothing. Rejected for other question types / scenes."
+            "description": "Outcome scene + TrueFalse only (required there together with trueOutcomes): the outcomes that answering \"false\" votes for. Use [] for a side that votes for nothing. Rejected for other question types / scenes. Each item is an outcome code (one vote) or { code, weight } to make this pick count more or less — e.g. { \"code\": \"lion\", \"weight\": 2 } for a question that should decide the result more than the others. The outcome with the most total votes wins."
           },
           "trueDimensionScores": {
             "type": "object",
@@ -2882,6 +3263,10 @@
             "type": "string",
             "maxLength": 100,
             "description": "TrueFalse only: custom display text for the \"false\" option (e.g. \"No\" / \"Disagree\"). Ignored for other question types. Leave empty to fall back to the built-in default for the form language (\"Incorrect\" in English forms). Does not change the stored answer value, which stays \"false\"."
+          },
+          "collectOnly": {
+            "type": "boolean",
+            "description": "scored_quiz scene only, for SingleCheck / MultiCheck / DropDown / Cascade / TrueFalse / Rate: collect the answer as data without scoring it (e.g. age range, industry, how they heard about you). A collect-only question produces no score, cannot be referenced by report.formula or dimension formulas, and is shown with plain radio buttons / checkboxes instead of A/B/C letter badges. Do not pass any scoring input (choices[i].score, dimensionScores, score, correctAnswer) together with it. Rejected in other scenes."
           },
           "content": {
             "type": "string",
@@ -3204,6 +3589,10 @@
             },
             "description": "Swiper block only: replace ALL slides with this list (1-10). Slides get fresh ids, so any translated slide titles / notes for this block have to be rewritten afterwards."
           },
+          "collectOnly": {
+            "type": "boolean",
+            "description": "scored_quiz scene only, for SingleCheck / MultiCheck / DropDown / Cascade / TrueFalse / Rate: true = collect the answer as data without scoring it (plain radio / checkbox display, no score, not referenceable by formulas); false = score it again with its existing Option Scoring. Turning it on is rejected while report.formula or a dimension formula still references this question — remove the reference first."
+          },
           "trueLabel": {
             "type": "string",
             "maxLength": 100,
@@ -3313,10 +3702,33 @@
                 "outcomes": {
                   "type": "array",
                   "items": {
-                    "type": "string"
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "code": {
+                            "type": "string",
+                            "description": "Outcome code from report.outcomes"
+                          },
+                          "weight": {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 100,
+                            "description": "Votes this pick casts for the outcome; omit for 1. Decimals allowed, 0 = counts for nothing."
+                          }
+                        },
+                        "required": [
+                          "code"
+                        ],
+                        "additionalProperties": false
+                      }
+                    ]
                   },
                   "maxItems": 50,
-                  "description": "Outcome scene only, and required there on every choice: the outcome codes this choice votes for when selected (each must exist in report.outcomes; a choice may vote for multiple outcomes). Use [] for a neutral choice that votes for nothing. Rejected in the knowledge_quiz / scored_quiz scenes."
+                  "description": "Outcome scene only, and required there on every choice: the outcomes this choice votes for when selected (each code must exist in report.outcomes; a choice may vote for multiple outcomes). Use [] for a neutral choice that votes for nothing. Rejected in the knowledge_quiz / scored_quiz scenes. Each item is an outcome code (one vote) or { code, weight } to make this pick count more or less — e.g. { \"code\": \"lion\", \"weight\": 2 } for a question that should decide the result more than the others. The outcome with the most total votes wins."
                 },
                 "dimensionScores": {
                   "type": "object",
@@ -3352,10 +3764,33 @@
                       "outcomes": {
                         "type": "array",
                         "items": {
-                          "type": "string"
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "code": {
+                                  "type": "string",
+                                  "description": "Outcome code from report.outcomes"
+                                },
+                                "weight": {
+                                  "type": "number",
+                                  "minimum": 0,
+                                  "maximum": 100,
+                                  "description": "Votes this pick casts for the outcome; omit for 1. Decimals allowed, 0 = counts for nothing."
+                                }
+                              },
+                              "required": [
+                                "code"
+                              ],
+                              "additionalProperties": false
+                            }
+                          ]
                         },
                         "maxItems": 50,
-                        "description": "Outcome scene only, and required there on every choice: the outcome codes this choice votes for when selected (each must exist in report.outcomes; a choice may vote for multiple outcomes). Use [] for a neutral choice that votes for nothing. Rejected in the knowledge_quiz / scored_quiz scenes."
+                        "description": "Outcome scene only, and required there on every choice: the outcomes this choice votes for when selected (each code must exist in report.outcomes; a choice may vote for multiple outcomes). Use [] for a neutral choice that votes for nothing. Rejected in the knowledge_quiz / scored_quiz scenes. Each item is an outcome code (one vote) or { code, weight } to make this pick count more or less — e.g. { \"code\": \"lion\", \"weight\": 2 } for a question that should decide the result more than the others. The outcome with the most total votes wins."
                       },
                       "dimensionScores": {
                         "type": "object",
@@ -3391,10 +3826,33 @@
                             "outcomes": {
                               "type": "array",
                               "items": {
-                                "type": "string"
+                                "anyOf": [
+                                  {
+                                    "type": "string"
+                                  },
+                                  {
+                                    "type": "object",
+                                    "properties": {
+                                      "code": {
+                                        "type": "string",
+                                        "description": "Outcome code from report.outcomes"
+                                      },
+                                      "weight": {
+                                        "type": "number",
+                                        "minimum": 0,
+                                        "maximum": 100,
+                                        "description": "Votes this pick casts for the outcome; omit for 1. Decimals allowed, 0 = counts for nothing."
+                                      }
+                                    },
+                                    "required": [
+                                      "code"
+                                    ],
+                                    "additionalProperties": false
+                                  }
+                                ]
                               },
                               "maxItems": 50,
-                              "description": "Outcome scene only, and required there on every choice: the outcome codes this choice votes for when selected (each must exist in report.outcomes; a choice may vote for multiple outcomes). Use [] for a neutral choice that votes for nothing. Rejected in the knowledge_quiz / scored_quiz scenes."
+                              "description": "Outcome scene only, and required there on every choice: the outcomes this choice votes for when selected (each code must exist in report.outcomes; a choice may vote for multiple outcomes). Use [] for a neutral choice that votes for nothing. Rejected in the knowledge_quiz / scored_quiz scenes. Each item is an outcome code (one vote) or { code, weight } to make this pick count more or less — e.g. { \"code\": \"lion\", \"weight\": 2 } for a question that should decide the result more than the others. The outcome with the most total votes wins."
                             },
                             "dimensionScores": {
                               "type": "object",
@@ -4038,6 +4496,13 @@
           "cloned": {
             "type": "object",
             "description": "The cloned source draft — translate the text in place, keep every code, then save"
+          },
+          "feedbackSource": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "description": "Source copy of the result-page feedback block { enabled, answerType, question, title, description, buttonText, choices[{ code, label }] } to translate via update_form_translation.feedback; null when the form has none"
           }
         }
       },
@@ -4254,6 +4719,27 @@
             ],
             "description": "Translated system copy"
           },
+          "booking": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "description": "Translated booking block copy { title, description, buttonText }"
+          },
+          "feedback": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "description": "Translated feedback block copy { question, title, description, buttonText, choices[{ code, label }] }; null values / a null block = not translated yet (falls back to the source)"
+          },
+          "feedbackSource": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "description": "Source feedback block copy with its choice codes; null when the form has none"
+          },
           "updatedAt": {
             "type": [
               "string",
@@ -4291,7 +4777,7 @@
     {
       "name": "update_form_translation",
       "title": "Update form translation",
-      "description": "Save translated copy for one language version of a form. Pass the translated title / description / fields / report / systemText / booking, mirroring the shape returned by get_form_translation; fields you omit keep their current value and partial translation is allowed. Translation fields[] must not introduce codes that do not exist on the source form. Pass isActive=false to pause just this language version, independently of the form's overall isActive.",
+      "description": "Save translated copy for one language version of a form. Pass the translated title / description / fields / report / systemText / booking / feedback, mirroring the shape returned by get_form_translation; fields you omit keep their current value and partial translation is allowed. Translation fields[] must not introduce codes that do not exist on the source form. Pass isActive=false to pause just this language version, independently of the form's overall isActive.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -4630,6 +5116,56 @@
               }
             },
             "additionalProperties": true
+          },
+          "feedback": {
+            "type": "object",
+            "description": "Translated copy for the result-page feedback block. Whether it shows and its answer type always come from the source form — this only translates its wording. Replaced WHOLESALE on every save: pass every key you want translated; omitted or empty keys fall back to the source text. Read the source text and choice codes from feedbackSource in get_form_translation / create_form_translation.",
+            "properties": {
+              "question": {
+                "type": "string",
+                "description": "Translated feedback question.",
+                "maxLength": 200
+              },
+              "title": {
+                "type": "string",
+                "description": "Translated block heading.",
+                "maxLength": 100
+              },
+              "description": {
+                "type": "string",
+                "description": "Translated block description.",
+                "maxLength": 500
+              },
+              "buttonText": {
+                "type": "string",
+                "description": "Translated submit button label.",
+                "maxLength": 30
+              },
+              "choices": {
+                "type": "array",
+                "description": "Choice answer type only: translated option labels matched by the source choice code; a choice you leave out keeps the source label.",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "description": "Source choice code (from feedbackSource.choices)"
+                    },
+                    "label": {
+                      "type": "string",
+                      "maxLength": 100,
+                      "description": "Translated label"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "label"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "additionalProperties": false
           },
           "isActive": {
             "type": "boolean",
@@ -5377,7 +5913,7 @@
     {
       "name": "get_form_funnel",
       "title": "Get form funnel",
-      "description": "Read the conversion funnel for a form in the current team over the last N days, from the form_sessions telemetry: overall stages (viewed → started → submitted → leadCaptured → reportViewed → ctaClicked → shared), per-channel funnel (by utm_source, with embedded flag), UTM combos, and drop-off points (which question unsubmitted sessions stalled on). Use this to find where respondents drop and improve conversion.",
+      "description": "Read the conversion funnel for a form in the current team over the last N days, from the form_sessions telemetry: overall stages (viewed → started → submitted → leadCaptured → reportViewed → ctaClicked → shared; leadCaptured is counted from submissions bound to a respondent account, not from telemetry), per-channel funnel (by utm_source, with embedded flag), UTM combos, and drop-off points (which question unsubmitted sessions stalled on). Use this to find where respondents drop and improve conversion.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -5411,7 +5947,7 @@
           },
           "overall": {
             "type": "object",
-            "description": "Stage counts: { viewed, started, submitted, leadCaptured, reportViewed, ctaClicked, shared }"
+            "description": "Stage counts: { viewed, started, submitted, leadCaptured, reportViewed, ctaClicked, shared }; leadCaptured counts submissions bound to a respondent account (from records), the rest come from session telemetry"
           },
           "channels": {
             "type": "array",
@@ -5792,7 +6328,7 @@
               "object",
               "null"
             ],
-            "description": "The complete frozen report { status, overallAnalysis, dimensionAnalysis, outcome, aiEvaluation, aiSuggestion }"
+            "description": "The complete frozen report { status, overallAnalysis, dimensionAnalysis, outcome, aiEvaluation }"
           }
         }
       },
@@ -7070,7 +7606,7 @@
           },
           "delivery": {
             "type": "object",
-            "description": "Delivery state: { isActive, submissionAccess, reportGateRequireCode, timeLimit, sharing, answerSheet, booking, gaTrackingId, sharedWithAll }; get_form_share_info adds the team-level examineeSignupDisabled (respondent self-signup off = a login-gated quiz turns away anyone not on the roster)"
+            "description": "Delivery state: { isActive, submissionAccess, reportGateRequireCode, timeLimit, sharing, answerSheet, crowdCompare, booking, feedback, allowPdfDownload, gaTrackingId, sharedWithAll, searchIndexable }; get_form_share_info adds the team-level examineeSignupDisabled (respondent self-signup off = a login-gated quiz turns away anyone not on the roster)"
           }
         }
       },
@@ -7102,7 +7638,7 @@
     {
       "name": "update_form_settings",
       "title": "Update form settings",
-      "description": "Change how a form of the current team is delivered, as opposed to what it says (use update_form for title / questions / report / theme). Editable: submissionAccess (who may answer and whether seeing the report needs a login — this is the lead-capture gate), reportGateRequireCode (whether that login gate collects an emailed verification code, trading completion rate against lead quality), timeLimit, sharing (the result-page share button and personalised share card, which is what drives organic spread), answerSheet, booking (the result-page booking block that feeds the 1:1 call queue), gaTrackingId, sharedWithAll (whether every team member can see this form), and slug (the custom path that gives the public link a memorable, SEO-friendly address). Only the keys you pass are changed. Read the current values with get_form_share_info.",
+      "description": "Change how a form of the current team is delivered, as opposed to what it says (use update_form for title / questions / report / theme). Editable: submissionAccess (who may answer and whether seeing the report needs a login — this is the lead-capture gate), reportGateRequireCode (whether that login gate collects an emailed verification code, trading completion rate against lead quality), timeLimit, sharing (the result-page share button and personalised share card, which is what drives organic spread), answerSheet, booking (the result-page booking block that feeds the 1:1 call queue), feedback (a one-question feedback block on the result page), allowPdfDownload (respondents can download their full report as a PDF — Pro), gaTrackingId, sharedWithAll (whether every team member can see this form), searchIndexable (whether search engines may list the quiz), and slug (the custom path that gives the public link a memorable, SEO-friendly address). Only the keys you pass are changed. Read the current values with get_form_share_info.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -7169,6 +7705,19 @@
             "additionalProperties": false,
             "description": "The answer-sheet sidebar on the answering page"
           },
+          "crowdCompare": {
+            "type": "object",
+            "properties": {
+              "enabled": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "enabled"
+            ],
+            "additionalProperties": false,
+            "description": "Show respondents what share of people picked the same option (\"62% of people chose the same as you\"). Off by default: it publishes this quiz's answer distribution to whoever answers it, and seeing the majority choice nudges later respondents toward it — leave it off for quizzes used to match courses or place learners. Percentages only, never individual answers, and nothing shows until the quiz has 10+ submissions. Not available for knowledge quizzes at all: the distribution is effectively a crowdsourced answer key."
+          },
           "booking": {
             "type": "object",
             "properties": {
@@ -7198,6 +7747,80 @@
             "additionalProperties": false,
             "description": "The result-page booking block. The bookable hours live in the team's booking settings, not here — this is only the switch and the copy. Bookings that come in are handled with list_bookings / review_booking."
           },
+          "feedback": {
+            "type": "object",
+            "properties": {
+              "enabled": {
+                "type": "boolean",
+                "description": "Whether the result page shows the feedback block"
+              },
+              "question": {
+                "type": "string",
+                "maxLength": 200,
+                "description": "The one question respondents answer, e.g. \"How useful was this report?\"; required when enabling"
+              },
+              "answerType": {
+                "type": "string",
+                "enum": [
+                  "rating",
+                  "choice",
+                  "text"
+                ],
+                "description": "rating = 1-5 stars (default); choice = pick one of choices; text = free text"
+              },
+              "choices": {
+                "type": "array",
+                "maxItems": 6,
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "description": "Existing choice code from get_form_share_info — pass it back to keep past answers attached to this choice; omit for a new choice"
+                    },
+                    "label": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 100
+                    }
+                  },
+                  "required": [
+                    "label"
+                  ],
+                  "additionalProperties": false
+                },
+                "description": "answerType choice only: 2-6 options"
+              },
+              "allowComment": {
+                "type": "boolean",
+                "description": "rating / choice only: add an optional free-text comment box under the answer"
+              },
+              "title": {
+                "type": "string",
+                "maxLength": 100,
+                "description": "Block heading; empty = built-in default"
+              },
+              "description": {
+                "type": "string",
+                "maxLength": 500,
+                "description": "Block copy; empty = built-in default"
+              },
+              "buttonText": {
+                "type": "string",
+                "maxLength": 30,
+                "description": "Submit button label; empty = built-in default"
+              }
+            },
+            "required": [
+              "enabled"
+            ],
+            "additionalProperties": false,
+            "description": "Result-page feedback block: one question asked after respondents read their report — tells you whether the result landed. Replaced WHOLESALE: read the current block from get_form_share_info and pass every key you want to keep (omitted copy falls back to the default, omitted choices are dropped)."
+          },
+          "allowPdfDownload": {
+            "type": "boolean",
+            "description": "Let respondents download their full report as a PDF. Pro only (switching it on is rejected on the Free plan). Takes effect only on gated quizzes — submissionAccess login_to_view_report or examinee_only — because the download is tied to the signed-in respondent."
+          },
           "gaTrackingId": {
             "type": "string",
             "description": "Google Analytics measurement id (G-XXXXXX) or Universal Analytics id (UA-XXXX-Y). Pass an empty string to clear."
@@ -7205,6 +7828,10 @@
           "sharedWithAll": {
             "type": "boolean",
             "description": "Whether every member of the team can see and open this form"
+          },
+          "searchIndexable": {
+            "type": "boolean",
+            "description": "Whether search engines may list this quiz: true puts it in the sitemap and marks its public pages indexable, false keeps them out of search results (drafts, funnel pages meant only for one audience). New quizzes default to true."
           },
           "slug": {
             "type": "string",
@@ -7240,7 +7867,7 @@
           },
           "delivery": {
             "type": "object",
-            "description": "Delivery state: { isActive, submissionAccess, reportGateRequireCode, timeLimit, sharing, answerSheet, booking, gaTrackingId, sharedWithAll }; get_form_share_info adds the team-level examineeSignupDisabled (respondent self-signup off = a login-gated quiz turns away anyone not on the roster)"
+            "description": "Delivery state: { isActive, submissionAccess, reportGateRequireCode, timeLimit, sharing, answerSheet, crowdCompare, booking, feedback, allowPdfDownload, gaTrackingId, sharedWithAll, searchIndexable }; get_form_share_info adds the team-level examineeSignupDisabled (respondent self-signup off = a login-gated quiz turns away anyone not on the roster)"
           }
         }
       },
