@@ -5,9 +5,23 @@ version the bridge reports during a tokenless handshake comes from `bin/introspe
 which mirrors what `https://payload.rooquiz.com/api/mcp` answers `initialize` with and moves
 on its own schedule — see `scripts/snapshot-tools.mjs`.
 
-## Unreleased
+## 1.2.0 — 2026-10-14
 
 ### Changed
+
+- **Snapshot regenerated against the hosted server as of 2026-10-14.** Same 48 tools, newer
+  schemas and descriptions:
+  - Outcome choices may now cast weighted votes — `choices[i].outcomes` (and `trueOutcomes` /
+    `falseOutcomes`) accept `{ code, weight }` as well as a bare code (`create_form`,
+    `add_question`, `insert_question`, `update_question`).
+  - `report.sectionOrder` (`create_form`, `update_form`) no longer lists `ai`: the AI
+    suggestion section was retired on the hosted server, leaving `dimension`, `booking` and
+    `feedback`. `get_record` no longer
+    documents an `aiSuggestion` block in the frozen report.
+  - `update_form_settings` gained `allowPdfDownload` and `crowdCompare`, and
+    `get_form_share_info` reports them alongside `feedback`.
+  - Translation tools expose the result-page feedback block (`feedbackSource`), and
+    `get_form_funnel` spells out how `leadCaptured` is counted.
 
 - **Snapshot regenerated against the hosted server.** `bin/introspection.json` now mirrors
   what `payload.rooquiz.com` answers as of 2026-09-09: every tool carries a human-readable
