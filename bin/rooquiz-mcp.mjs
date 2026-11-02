@@ -165,7 +165,7 @@ function negotiateProtocolVersion(requested, supported) {
 
 /**
  * Told to the model through `initialize`, because a merged tool list otherwise looks like
- * 51 equally usable tools when only the preview ones can run without a token.
+ * a list of equally usable tools when only the preview ones can run without a token.
  */
 function tokenlessNotice(skills) {
   const usable = [...skills.map(skill => skill.tool), GUIDE_TOOL].join(', ')
@@ -192,13 +192,21 @@ function previewTools() {
     return []
   }
 
+  // The SKILL.md descriptions point at their siblings as "the preview-x skill"; over MCP the
+  // sibling is a tool, so name it the way the client will see it.
+  const toolNames = new Map(skills.map(skill => [skill.name, skill.tool]))
+  const asToolReferences = text =>
+    text.replace(/\bthe (preview-[a-z-]+) skill\b/g, (match, name) =>
+      toolNames.has(name) ? `the ${toolNames.get(name)} tool` : match
+    )
+
   const tools = skills.map(skill => ({
     name: skill.tool,
     // The hosted server carries the human-readable name in both places: `title` for clients
     // on the current spec, `annotations.title` for the ones that only ever read the old one.
     title: skill.title,
     description:
-      `${skill.description}\n\nThis tool takes the finished assessment JSON and nothing else. ` +
+      `${asToolReferences(skill.description)}\n\nThis tool takes the finished assessment JSON and nothing else. ` +
       `Unless its field schema, scoring rules and worked example are already in context, call ` +
       `${GUIDE_TOOL} with type "${skill.guideType}" first.`,
     inputSchema: {
@@ -248,9 +256,9 @@ function previewTools() {
         type: {
           type: 'string',
           enum: skills.map(skill => skill.guideType),
-          description:
-            'quiz = right/wrong graded test; scorecard = every option adds points toward a level; ' +
-            'outcome = personality/type test with no right answers.',
+          description: `${skills
+            .map(skill => (skill.guideSummary ? `${skill.guideType} = ${skill.guideSummary}` : skill.guideType))
+            .join('; ')}.`,
         },
       },
       required: ['type'],

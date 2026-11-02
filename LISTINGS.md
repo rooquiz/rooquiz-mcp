@@ -112,12 +112,12 @@ pages, and analyze funnel conversion from any MCP client.
 - **Registry name:** `com.rooquiz/rooquiz-mcp` (listed on the official MCP registry)
 
 ### What it does
-- **Quizzes** — knowledge quizzes, scored quizzes, and outcome ("which X are you") quizzes; edit
-  questions, scoring formulas, and dimension analysis; start from templates
+- **Quizzes** — knowledge quizzes, scored quizzes, outcome ("which X are you") quizzes, and AI
+  quizzes whose report an AI writes for each respondent; edit questions, scoring formulas, and dimension analysis; start from templates
 - **Translations** — one source form, mirrored translations in any language
 - **Leads** — list, tag, assign, and comment on leads captured from quiz results pages
 - **Respondents & records** — respondents, submissions, stats, and funnel analytics
-- **Bookings** — review and reschedule bookings made through quiz results pages
+- **Bookings** — list the calls respondents booked through Cal.com from quiz results pages
 - **Team** — switch active team, invite members, manage question banks and categories
 
 ### Install
@@ -147,7 +147,7 @@ comment says "after the server description", but all ~2000 badged entries in tha
 this position, and `check-glama.yml` only string-matches the line.
 
 ```markdown
-- [rooquiz/rooquiz-mcp](https://github.com/rooquiz/rooquiz-mcp) [![rooquiz/rooquiz-mcp MCP server](https://glama.ai/mcp/servers/rooquiz/rooquiz-mcp/badges/score.svg)](https://glama.ai/mcp/servers/rooquiz/rooquiz-mcp) 🎖️ 📇 ☁️ - Build and run assessments on [RooQuiz](https://rooquiz.com) — knowledge quizzes, scored quizzes, and outcome ("which X are you") quizzes with AI-assisted authoring and mirrored translations — then work the funnel: leads captured from results pages (tag, assign, comment), respondents, submissions, bookings, and conversion stats. Hosted Streamable HTTP endpoint at `https://payload.rooquiz.com/api/mcp`, OAuth 2.1 with dynamic client registration, no API key.
+- [rooquiz/rooquiz-mcp](https://github.com/rooquiz/rooquiz-mcp) [![rooquiz/rooquiz-mcp MCP server](https://glama.ai/mcp/servers/rooquiz/rooquiz-mcp/badges/score.svg)](https://glama.ai/mcp/servers/rooquiz/rooquiz-mcp) 🎖️ 📇 ☁️ - Build and run assessments on [RooQuiz](https://rooquiz.com) — knowledge quizzes, scored quizzes, outcome ("which X are you") quizzes, and AI quizzes whose report an AI writes for each respondent, with AI-assisted authoring and mirrored translations — then work the funnel: leads captured from results pages (tag, assign, comment), respondents, submissions, bookings, and conversion stats. Hosted Streamable HTTP endpoint at `https://payload.rooquiz.com/api/mcp`, OAuth 2.1 with dynamic client registration, no API key.
 ```
 
 **Do not push the badge before the Glama servers listing exists** — it renders as a broken
@@ -249,7 +249,8 @@ one of the 15 slugs in `https://lobehub.com/sitemap/mcp-category.xml`.
 Claude Connectors and the ChatGPT Apps Directory share this material. Any missing item means
 rejection. Each line below was re-verified on 2026-08-28.
 
-- [x] **Tool annotations** — all 48 tools carry annotations
+- [x] **Tool annotations** — all 44 tools carry annotations (48 when this was verified; the four
+  built-in scheduler tools were removed in 1.3.0)
   (`rooquiz-payload/src/integrations/mcp/annotations.ts`). Every `delete_*` tool is
   `destructiveHint: true`. Note the deviation from what this list used to say: `update_*` is
   **not** blanket-destructive. The file draws the line at "deletes or irreversibly overwrites

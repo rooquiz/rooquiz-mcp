@@ -28,7 +28,8 @@ const SNAPSHOT = new URL('../bin/introspection.json', import.meta.url)
 
 /**
  * The bridge needs a few things the SKILL.md frontmatter does not carry: the MCP tool name
- * and title, the `preview_guide` enum value, and the `scene` the skill is fixed to. They live
+ * and title, the `preview_guide` enum value with the one-line summary that explains it, and
+ * the `scene` the skill is fixed to. They live
  * here rather than being scraped out of the prose, and `scene` is cross-checked against
  * the body below so a change upstream fails the sync instead of shipping silently.
  */
@@ -38,6 +39,7 @@ const SKILLS = [
     tool: 'preview_quiz',
     title: 'Create preview quiz',
     guideType: 'quiz',
+    guideSummary: 'right/wrong graded test',
     scene: 'knowledge_quiz',
   },
   {
@@ -45,6 +47,7 @@ const SKILLS = [
     tool: 'preview_scorecard',
     title: 'Create preview scorecard',
     guideType: 'scorecard',
+    guideSummary: 'every option adds points toward a level',
     scene: 'scored_quiz',
   },
   {
@@ -52,6 +55,7 @@ const SKILLS = [
     tool: 'preview_outcome',
     title: 'Create preview personality test',
     guideType: 'outcome',
+    guideSummary: 'personality/type test with no right answers',
     scene: 'outcome_quiz',
   },
   {
@@ -59,6 +63,7 @@ const SKILLS = [
     tool: 'preview_ai_quiz',
     title: 'Create preview AI quiz',
     guideType: 'ai_quiz',
+    guideSummary: 'nothing is scored, and an AI writes each taker a personalized report',
     scene: 'ai_quiz',
   },
 ]

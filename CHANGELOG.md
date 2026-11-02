@@ -10,7 +10,7 @@ on its own schedule — see `scripts/snapshot-tools.mjs`.
 ### Added
 
 - **`preview_ai_quiz`: a fifth tokenless tool, for the AI quiz scene.** It is vendored from
-  the new `preview-ai-quiz` skill in rooquiz-skills (`1e2c2d6`), and `preview_guide` takes
+  the new `preview-ai-quiz` skill in rooquiz-skills, and `preview_guide` takes
   `type: "ai_quiz"` for its guide. The preview scores nothing: its questions only collect
   answers, and `report.aiReport` carries the instructions the AI follows once the quiz is
   published. The preview never runs the AI, so the result page shows a sample report.
@@ -25,10 +25,18 @@ on its own schedule — see `scripts/snapshot-tools.mjs`.
   - Instant feedback is on by default for newly created knowledge quizzes, except level
     tests.
 
-- **Preview skills re-vendored from rooquiz-skills `1e2c2d6`.** They use the same top-level
-  `hideScores` switch, and outcome tests now accept conditional `rules`.
+- **Preview skills re-vendored from rooquiz-skills `4fa07e8`.** They use the same top-level
+  `hideScores` switch. Outcome tests now accept conditional `rules`, and the outcome and
+  scorecard guides document the rule format. The AI quiz guide covers result tags.
 
-- `lhm.plugin.json`'s `tools` array re-dumped to match.
+- **Preview tool descriptions name tools, not skills.** The vendored descriptions point at
+  their siblings as "the preview-x skill", which no MCP client can find. The bridge now
+  rewrites that to "the preview_x tool". `preview_guide`'s `type` description is built
+  from a per-skill `guideSummary`, so a new guide type is explained the moment it is
+  added.
+
+- `lhm.plugin.json`'s `tools` array re-dumped to match. `LISTINGS.md` drops the retired
+  booking review and rescheduling, corrects the tool count to 44 and mentions AI quizzes.
 
 ## 1.3.0 — 2026-11-02
 
