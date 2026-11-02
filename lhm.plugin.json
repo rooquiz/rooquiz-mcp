@@ -647,10 +647,6 @@
                 "description": "Suggestions template; same rich-text rules as summaryTemplate.",
                 "maxLength": 5000
               },
-              "hideOverallScore": {
-                "type": "boolean",
-                "description": "Hide scores on the result page: the overall score (score ring / number / percentile) AND every dimension score (score / max score / progress bar / score rate) are hidden together, keeping level names, level descriptions, the level ladder, dimension levels and the summary. Note the summary template still renders its score variable if you left one in. Scored scenes only (ignored for outcome). Default false."
-              },
               "levels": {
                 "type": "array",
                 "maxItems": 20,
@@ -1096,7 +1092,7 @@
           },
           "report": {
             "type": "object",
-            "description": "Report configuration, merged by sub-key into form.report: passing overallAnalysis fields (title/formula/levels/summaryTemplate/suggestionsTemplate/hideOverallScore) replaces overallAnalysis, except that an omitted formula keeps the current one (pass formula: \"\" to remove it and fall back to the default sum); passing dimensionAnalysis replaces the dimension list (scored_quiz only; codes are kept by code or by name, omitted title / radar settings are preserved; an empty dimensions array clears it; a dimension still referenced by a question's dimensionScores or by report.formula cannot be removed); in the outcome_quiz scene passing outcomes replaces the outcome list (matched by code, existing images kept; cannot be emptied, and removing an outcome still referenced by question votes is rejected); passing sectionOrder replaces the result-page section order ([] restores the default); unspecified parts are kept. Common usage: either set custom question codes in create_form and pass report.formula / dimensionAnalysis in the same call, or call create_form first to get the auto-generated field codes, then update_form to fill in report.formula and/or dimensionAnalysis (which reference question codes).",
+            "description": "Report configuration, merged by sub-key into form.report: passing overallAnalysis fields (title/formula/levels/summaryTemplate/suggestionsTemplate) replaces overallAnalysis, except that an omitted formula keeps the current one (pass formula: \"\" to remove it and fall back to the default sum); passing dimensionAnalysis replaces the dimension list (scored_quiz only; codes are kept by code or by name, omitted title / radar settings are preserved; an empty dimensions array clears it; a dimension still referenced by a question's dimensionScores or by report.formula cannot be removed); in the outcome_quiz scene passing outcomes replaces the outcome list (matched by code, existing images kept; cannot be emptied, and removing an outcome still referenced by question votes is rejected); passing sectionOrder replaces the result-page section order ([] restores the default); unspecified parts are kept. Common usage: either set custom question codes in create_form and pass report.formula / dimensionAnalysis in the same call, or call create_form first to get the auto-generated field codes, then update_form to fill in report.formula and/or dimensionAnalysis (which reference question codes).",
             "properties": {
               "title": {
                 "type": "string",
@@ -1117,10 +1113,6 @@
                 "type": "string",
                 "description": "Suggestions template; same rich-text rules as summaryTemplate.",
                 "maxLength": 5000
-              },
-              "hideOverallScore": {
-                "type": "boolean",
-                "description": "Hide scores on the result page: the overall score (score ring / number / percentile) AND every dimension score (score / max score / progress bar / score rate) are hidden together, keeping level names, level descriptions, the level ladder, dimension levels and the summary. Note the summary template still renders its score variable if you left one in. Scored scenes only (ignored for outcome). Default false."
               },
               "levels": {
                 "type": "array",
@@ -4296,7 +4288,7 @@
     },
     {
       "name": "update_form_settings",
-      "description": "Change how a form of the current team is delivered, as opposed to what it says (use update_form for title / questions / report / theme). Editable: submissionAccess (who may answer and whether seeing the report needs a login — this is the lead-capture gate), reportGateRequireCode (whether that login gate collects an emailed verification code, trading completion rate against lead quality), timeLimit, sharing (the result-page share button and personalised share card, which is what drives organic spread), answerSheet, crowdCompare (show respondents what share of people picked the same option — off by default, not for knowledge quizzes), instantFeedback (knowledge quizzes only: respondents submit each page and see right / wrong, the correct answer and the explanation before moving on), booking (the result-page block that opens the team's Cal.com scheduling link; bookings sync back read-only), feedback (a one-question feedback block on the result page), allowPdfDownload (respondents can download their full report as a PDF — Pro), gaTrackingId, sharedWithAll (whether every team member can see this form), searchIndexable (whether search engines may list the quiz), and slug (the custom path that gives the public link a memorable, SEO-friendly address). Only the keys you pass are changed. Read the current values with get_form_share_info.",
+      "description": "Change how a form of the current team is delivered, as opposed to what it says (use update_form for title / questions / report / theme). Editable: submissionAccess (who may answer and whether seeing the report needs a login — this is the lead-capture gate), reportGateRequireCode (whether that login gate collects an emailed verification code, trading completion rate against lead quality), timeLimit, sharing (the result-page share button and personalised share card, which is what drives organic spread), answerSheet, crowdCompare (show respondents what share of people picked the same option — off by default, not for knowledge quizzes), instantFeedback (knowledge quizzes only, on by default for newly created ones except level tests: respondents submit each page and see right / wrong, the correct answer and the explanation before moving on), hideScores (hide every score respondents see — report, question points, instant feedback and answer review — while keeping levels and right / wrong), booking (the result-page block that opens the team's Cal.com scheduling link; bookings sync back read-only), feedback (a one-question feedback block on the result page), allowPdfDownload (respondents can download their full report as a PDF — Pro), gaTrackingId, sharedWithAll (whether every team member can see this form), searchIndexable (whether search engines may list the quiz), and slug (the custom path that gives the public link a memorable, SEO-friendly address). Only the keys you pass are changed. Read the current values with get_form_share_info.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -4387,7 +4379,20 @@
               "enabled"
             ],
             "additionalProperties": false,
-            "description": "Knowledge quizzes only (knowledge_quiz / random_knowledge_quiz). When on, the respondent submits each page on its own and sees whether they were right, the correct answer and the question's explanation; submitted questions lock before they move on, and the last page ends with a \"See results\" button that finishes the quiz. Off by default. Turns the quiz into a learn-as-you-go challenge; it does reveal answers question by question, so leave it off when the score is used for placement."
+            "description": "Knowledge quizzes only (knowledge_quiz / random_knowledge_quiz). When on, the respondent submits each page on its own and sees whether they were right, the correct answer and the question's explanation; submitted questions lock before they move on, and the last page ends with a \"See results\" button that finishes the quiz. On by default for newly created knowledge quizzes except level tests (useCase level_test); existing quizzes keep whatever they had. Turns the quiz into a learn-as-you-go challenge; it does reveal answers question by question, so leave it off when the score is used for placement."
+          },
+          "hideScores": {
+            "type": "object",
+            "properties": {
+              "enabled": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "enabled"
+            ],
+            "additionalProperties": false,
+            "description": "Hide every score the respondent sees: the result page's overall score (score ring / number / percentile) and every dimension score, the points badge on each question while answering, the score in instant feedback, and the per-question scores in the answer review. Level names, level descriptions, the summary and right / wrong verdicts stay. The team still sees scores in the dashboard. Scenes with scores only (knowledge_quiz / random_knowledge_quiz / scored_quiz). Note the summary template still renders its score variable if one is left in. Off by default."
           },
           "booking": {
             "type": "object",

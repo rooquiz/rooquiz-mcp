@@ -5,6 +5,23 @@ version the bridge reports during a tokenless handshake comes from `bin/introspe
 which mirrors what `https://payload.rooquiz.com/api/mcp` answers `initialize` with and moves
 on its own schedule — see `scripts/snapshot-tools.mjs`.
 
+## Unreleased
+
+### Changed
+
+- **Snapshot regenerated against rooquiz-payload `main` (`566c1e07`).** Same 44 tools:
+  - Hiding scores moved from `report.overallAnalysis.hideOverallScore` (`create_form`,
+    `update_form`) to the form-level `hideScores.enabled` in `update_form_settings`, which
+    `get_form_share_info` also reports. It now hides every score the respondent sees,
+    including the points badge on each question and the scores in instant feedback.
+  - Instant feedback is on by default for newly created knowledge quizzes, except level
+    tests.
+
+- **Preview skills re-vendored from rooquiz-skills `058eac9`.** They use the same top-level
+  `hideScores` switch, and outcome tests now accept conditional `rules`.
+
+- `lhm.plugin.json`'s `tools` array re-dumped to match.
+
 ## 1.3.0 — 2026-11-02
 
 ### Changed
