@@ -85,11 +85,11 @@ so address a respondent by id rather than pasting a masked value back in.
 
 ## What you can do
 
-- **Quizzes** — create knowledge quizzes, scored quizzes, and "which X are you" outcome quizzes; edit questions, scoring formulas, and dimension analysis; start from templates
+- **Quizzes** — create knowledge quizzes, scored quizzes, "which X are you" outcome quizzes, and AI quizzes whose report an AI writes for each respondent; edit questions, scoring formulas, and dimension analysis; start from templates
 - **Translations** — one source form, mirrored translations in any language
 - **Leads** — list, tag, assign, and comment on leads captured from quiz results pages
 - **Respondents & records** — look up respondents, submissions, stats, and funnel analytics
-- **Bookings** — review and reschedule bookings made through quiz results pages
+- **Bookings** — list the calls respondents booked through Cal.com from quiz results pages
 - **Team** — switch active team, invite members, manage question banks and categories
 
 All tools act within the team your session is bound to.

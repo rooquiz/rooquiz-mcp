@@ -5,6 +5,42 @@ version the bridge reports during a tokenless handshake comes from `bin/introspe
 which mirrors what `https://payload.rooquiz.com/api/mcp` answers `initialize` with and moves
 on its own schedule — see `scripts/snapshot-tools.mjs`.
 
+## Unreleased
+
+### Changed
+
+- **Snapshot regenerated against rooquiz-payload `main` as of 2026-11-02** (`8716b1c2`).
+  48 tools become 44:
+  - **Removed:** `get_booking_availability`, `review_booking`, `update_booking_status` and
+    `reschedule_booking`. The built-in 1:1 scheduler was retired; respondents now book
+    through Cal.com. `list_bookings` stays and lists those bookings (`provider: "calcom"`)
+    plus read-only history from the old scheduler (`provider: "native"`), and
+    `update_form_settings` takes the block's `booking.calLink`.
+  - **New `ai_quiz` scene:** nothing is scored and an AI writes each respondent's report from
+    `report.aiReport.instructions` (answers referenced as `{{code}}`), with optional
+    `report.outcomes` as internal result tags. Accepted by `create_form`, `update_form`,
+    `list_forms` and `list_templates`; attachment questions are allowed there, and an
+    `ai_quiz` holds at most 20 questions. `list_records` can filter on the new
+    `awaiting_gate` report status.
+  - **Instant feedback for knowledge quizzes:** `update_form_settings` takes
+    `instantFeedback.enabled`, and `get_form_share_info` reports it.
+  - `list_templates` filters by `useCase` (personality, recommendation, assessment,
+    level_test, trivia, ai_report) and pages through results.
+  - Choice questions lost collect-only mode (`collectOnly` is gone from the question
+    schemas), and dimension analysis is scored_quiz-only — `fieldCodes` is gone from
+    `set_dimension_analysis`.
+  - A scored_quiz with no `report.formula` now totals its question scores, and every plan
+    caps a quiz at 50 questions.
+  - Booking and feedback block titles and copy accept rich-text HTML, in
+    `update_form_settings` and `update_form_translation` alike.
+  - The server `instructions` served during a tokenless handshake describe `ai_quiz` and the
+    default scored_quiz total.
+
+- **Preview skills re-vendored from rooquiz-skills `d87d2e2`.** That commit realigned the
+  three `SKILL.md` files with the current preview API, and 1.2.0 shipped without it.
+
+- `lhm.plugin.json`'s `tools` array re-dumped to the same 44 tools.
+
 ## 1.2.0 — 2026-10-14
 
 ### Changed
