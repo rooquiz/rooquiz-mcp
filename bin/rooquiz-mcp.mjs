@@ -96,7 +96,7 @@ function loadSnapshot() {
 }
 
 /**
- * The three RooQuiz preview skills, vendored from the rooquiz-skills repo by
+ * The four RooQuiz preview skills, vendored from the rooquiz-skills repo by
  * scripts/sync-skills.mjs.
  *
  * They target a public, credential-free endpoint, so the bridge can run them itself. That
@@ -181,7 +181,7 @@ function tokenlessNotice(skills) {
 /**
  * The preview tools, derived from the vendored skills.
  *
- * Each skill's frontmatter description is already written to triage between the three
+ * Each skill's frontmatter description is already written to triage between the four
  * assessment types, so it is reused verbatim as the tool description; the ~12KB of field
  * schema, scoring rules and examples behind it stays out of the tool list and is fetched
  * on demand through `preview_guide`.

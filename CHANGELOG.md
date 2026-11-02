@@ -7,6 +7,14 @@ on its own schedule — see `scripts/snapshot-tools.mjs`.
 
 ## Unreleased
 
+### Added
+
+- **`preview_ai_quiz`: a fifth tokenless tool, for the AI quiz scene.** It is vendored from
+  the new `preview-ai-quiz` skill in rooquiz-skills (`1e2c2d6`), and `preview_guide` takes
+  `type: "ai_quiz"` for its guide. The preview scores nothing: its questions only collect
+  answers, and `report.aiReport` carries the instructions the AI follows once the quiz is
+  published. The preview never runs the AI, so the result page shows a sample report.
+
 ### Changed
 
 - **Snapshot regenerated against rooquiz-payload `main` (`566c1e07`).** Same 44 tools:
@@ -17,7 +25,7 @@ on its own schedule — see `scripts/snapshot-tools.mjs`.
   - Instant feedback is on by default for newly created knowledge quizzes, except level
     tests.
 
-- **Preview skills re-vendored from rooquiz-skills `058eac9`.** They use the same top-level
+- **Preview skills re-vendored from rooquiz-skills `1e2c2d6`.** They use the same top-level
   `hideScores` switch, and outcome tests now accept conditional `rules`.
 
 - `lhm.plugin.json`'s `tools` array re-dumped to match.

@@ -127,7 +127,7 @@ ROOQUIZ_TOKEN=rqp_live_xxx node scripts/snapshot-tools.mjs
 
 ### Preview mode — no token, no account
 
-A bridge with no usable token is not useless. It also serves four tools that need no
+A bridge with no usable token is not useless. It also serves five tools that need no
 credentials at all, because they target RooQuiz's **public** preview endpoint:
 
 | Tool | What it builds |
@@ -135,7 +135,8 @@ credentials at all, because they target RooQuiz's **public** preview endpoint:
 | `preview_quiz` | Right/wrong quiz — correct answers earn points and the taker gets a graded score |
 | `preview_scorecard` | Scored questionnaire — every option adds points toward a total that buckets into a level |
 | `preview_outcome` | Personality / type test — options vote for result types and the most-voted type wins |
-| `preview_guide` | The full authoring guide for one of the three: field schema, scoring rules, themes, examples |
+| `preview_ai_quiz` | AI quiz — nothing is scored; once published, an AI reads the answers (uploads included) and writes each taker a report |
+| `preview_guide` | The full authoring guide for one of the four: field schema, scoring rules, themes, examples |
 
 Ask in plain language — *"make me a 5-question personality quiz about coffee and give me a
 link"* — and you get back something like `https://quizster.app/b/7k3m9q2p`, openable and

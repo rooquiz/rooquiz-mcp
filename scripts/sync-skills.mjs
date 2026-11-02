@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Regenerates bin/skills.json — the three RooQuiz preview skills the bridge serves as
+ * Regenerates bin/skills.json — the four RooQuiz preview skills the bridge serves as
  * working tools when it has no usable token. See the long comment in bin/rooquiz-mcp.mjs
  * for why that path exists.
  *
@@ -53,6 +53,13 @@ const SKILLS = [
     title: 'Create preview personality test',
     guideType: 'outcome',
     scene: 'outcome_quiz',
+  },
+  {
+    name: 'preview-ai-quiz',
+    tool: 'preview_ai_quiz',
+    title: 'Create preview AI quiz',
+    guideType: 'ai_quiz',
+    scene: 'ai_quiz',
   },
 ]
 
