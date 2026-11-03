@@ -5770,7 +5770,7 @@
     {
       "name": "get_form_stats",
       "title": "Get form stats",
-      "description": "Read submission statistics for a form in the current team over the last N days: KPI overview (total / today / last 7 / last 30, unique examinees, anonymous, report status counts, average score, latest submission), daily submission trend, channels (by utm_source), UTM combos, login types (anonymous vs registered), device breakdown, and per-question answer distributions. Use this to gauge how a quiz is performing and to suggest improvements.",
+      "description": "Read submission statistics for a form in the current team: KPI overview (total / today / last 7 / last 30, unique examinees, anonymous, report status counts, average score, latest submission), daily submission trend, channels (by utm_source), UTM combos, login types (anonymous vs registered), device breakdown, and per-question answer distributions. `days` only sets the length of the daily trend; every other block counts all submissions ever made. Answer distributions cover only the first 10 SingleCheck / DropDown / Rate / TrueFalse questions in form order (other types, MultiCheck included, are not counted); each bucket carries the choice label next to its stored value. Use this to gauge how a quiz is performing and to suggest improvements.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -5780,7 +5780,7 @@
           },
           "days": {
             "type": "number",
-            "description": "Look-back window in days, default 30, max 180",
+            "description": "Length of the daily trend in days, default 30, max 180. Does not filter the other blocks.",
             "minimum": 1,
             "maximum": 180,
             "default": 30
@@ -5800,7 +5800,7 @@
           },
           "days": {
             "type": "number",
-            "description": "Look-back window actually used"
+            "description": "Length of the daily trend actually used (other blocks are all-time)"
           },
           "overview": {
             "type": "object",
@@ -5929,7 +5929,11 @@
                     "properties": {
                       "value": {
                         "type": "string",
-                        "description": "Answer value"
+                        "description": "Stored answer value (a choice code for choice questions)"
+                      },
+                      "label": {
+                        "type": "string",
+                        "description": "Choice text for that value; absent when the value is not a choice code (Rate / TrueFalse)"
                       },
                       "count": {
                         "type": "number",
@@ -5941,7 +5945,7 @@
                 }
               }
             },
-            "description": "Per-question answer distribution (choice-style questions only)"
+            "description": "All-time answer distribution of the first 10 SingleCheck / DropDown / Rate / TrueFalse questions"
           }
         }
       },
@@ -6302,7 +6306,7 @@
     {
       "name": "get_record",
       "title": "Get record",
-      "description": "View the full detail of one submission record (lead) in the current team by its record id (the `id` field returned by list_records), including the examinee, the submitted answers, UTM metadata and the complete frozen report result (overall / dimensions / outcome / AI evaluation). Answers are returned as the respondent wrote them, except that any email address or phone number inside them comes back masked.",
+      "description": "View the full detail of one submission record (lead) in the current team by its record id (the `id` field returned by list_records), including the examinee, the submitted answers, UTM metadata and the business report result (overall / dimensions / outcome / AI report / AI evaluation), with internal diagnostics omitted and quoted contacts masked. Answers are returned as the respondent wrote them, except that any email address or phone number inside them comes back masked.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -6389,7 +6393,7 @@
               "object",
               "null"
             ],
-            "description": "The complete frozen report { status, overallAnalysis, dimensionAnalysis, outcome, aiEvaluation }"
+            "description": "The sanitized report { status, errorCode, overallAnalysis, dimensionAnalysis, outcome, aiReport, aiEvaluation }; excludes internal diagnostics"
           }
         }
       },
@@ -7763,7 +7767,7 @@
               "enabled"
             ],
             "additionalProperties": false,
-            "description": "The answer-sheet sidebar on the answering page"
+            "description": "The answer-sheet sidebar on the answering page: a question navigator that lets respondents jump to any question. Off by default — most quizzes are meant to be answered straight through to the result page; turn it on for long knowledge quizzes."
           },
           "crowdCompare": {
             "type": "object",

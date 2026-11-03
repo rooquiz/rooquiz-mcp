@@ -17,7 +17,18 @@ on its own schedule — see `scripts/snapshot-tools.mjs`.
 
 ### Changed
 
-- **Snapshot regenerated against rooquiz-payload `main` (`d1d78ea5`).** Same 44 tools:
+- **Snapshot regenerated against rooquiz-payload `main` (`7a7f15b2`).** Same 44 tools:
+  - `get_form_stats` says what `days` really does: it sets only the length of the daily
+    trend, and every other block counts all submissions. Answer distributions cover the
+    first 10 SingleCheck / DropDown / Rate / TrueFalse questions, and each bucket now
+    carries the choice `label` next to its stored `value`.
+  - `get_record` returns a sanitized `reportResult` (`status`, `errorCode`,
+    `overallAnalysis`, `dimensionAnalysis`, `outcome`, `aiReport`, `aiEvaluation`) with
+    internal diagnostics dropped and contacts quoted in the report masked.
+  - The answer sheet (`answerSheet` in `update_form_settings`) is off by default for new
+    forms and templates, and its description explains when to turn it on.
+  - Form edits fail with a conflict if the form changed since it was read. This changes
+    tool behavior, not the snapshot.
   - AI quizzes take `report.aiReport.length` (`brief`, `standard` (the default) or
     `detailed`) in `create_form` and `update_form`; `null` restores `standard`. The server
     `instructions` mention it.
