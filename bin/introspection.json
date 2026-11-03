@@ -55,7 +55,7 @@
           },
           "description": {
             "type": "string",
-            "description": "Optional form description. Allows description-scope rich text (including <img src>). This field also accepts an inline image: put an <img src=\"...\"> in it, where src is a direct image URL that renders in <img src> (a page URL that merely contains an image does not work). Use finalize_image_upload to host an image yourself, or a direct URL the user supplied. Never invent an image URL — omit the image instead of risking a broken one.",
+            "description": "Optional form description. Allows description-scope rich text (including <img src>). Write HTML, never Markdown: <strong>bold</strong> not **bold**, <ul><li> not \"- item\", <h2> not \"## heading\". This field also accepts an inline image: put an <img src=\"...\"> in it, where src is a direct image URL that renders in <img src> (a page URL that merely contains an image does not work). Use finalize_image_upload to host an image yourself, or a direct URL the user supplied. Never invent an image URL — omit the image instead of risking a broken one.",
             "maxLength": 2000
           },
           "questions": {
@@ -99,12 +99,12 @@
                 },
                 "description": {
                   "type": "string",
-                  "description": "Optional supplementary note for the question. Allows a wider HTML subset: everything the stem allows + <h1>-<h6> <ul> <ol> <li> <blockquote> <a href> <img src> <hr> <art-field> (variable placeholder, data-type / data-cid); unsafe protocols (javascript:/data:) and unknown attributes are stripped. This field also accepts an inline image: put an <img src=\"...\"> in it, where src is a direct image URL that renders in <img src> (a page URL that merely contains an image does not work). Use finalize_image_upload to host an image yourself, or a direct URL the user supplied. Never invent an image URL — omit the image instead of risking a broken one.",
+                  "description": "Optional supplementary note for the question. Allows a wider HTML subset: everything the stem allows + <h1>-<h6> <ul> <ol> <li> <blockquote> <a href> <img src> <hr> <art-field> (variable placeholder, data-type / data-cid); unsafe protocols (javascript:/data:) and unknown attributes are stripped. Write HTML, never Markdown: <strong>bold</strong> not **bold**, <ul><li> not \"- item\", <h2> not \"## heading\". This field also accepts an inline image: put an <img src=\"...\"> in it, where src is a direct image URL that renders in <img src> (a page URL that merely contains an image does not work). Use finalize_image_upload to host an image yourself, or a direct URL the user supplied. Never invent an image URL — omit the image instead of risking a broken one.",
                   "maxLength": 2000
                 },
                 "explain": {
                   "type": "string",
-                  "description": "Optional answer explanation. The frontend renders it in the question's \"answer explanation\" field (DescriptionEditor); the rich-text rules are identical to description. Do not stuff the answer explanation into description — that is the question's supplementary note and will not be shown as an explanation to respondents/graders.",
+                  "description": "Optional answer explanation. The frontend renders it in the question's \"answer explanation\" field (DescriptionEditor); the rich-text rules are identical to description. Do not stuff the answer explanation into description — that is the question's supplementary note and will not be shown as an explanation to respondents/graders. Write HTML, never Markdown: <strong>bold</strong> not **bold**, <ul><li> not \"- item\", <h2> not \"## heading\".",
                   "maxLength": 2000
                 },
                 "required": {
@@ -484,7 +484,7 @@
                 "content": {
                   "type": "string",
                   "maxLength": 5000,
-                  "description": "Statement only, and required there: the text respondents read — an intro, a section lead-in, instructions, a disclaimer. The block renders this and nothing else. Same rich-text rules as `description` (headings / lists / links / <img src> / math formulas). This field also accepts an inline image: put an <img src=\"...\"> in it, where src is a direct image URL that renders in <img src> (a page URL that merely contains an image does not work). Use finalize_image_upload to host an image yourself, or a direct URL the user supplied. Never invent an image URL — omit the image instead of risking a broken one."
+                  "description": "Statement only, and required there: the text respondents read — an intro, a section lead-in, instructions, a disclaimer. The block renders this and nothing else. Same rich-text rules as `description` (headings / lists / links / <img src> / math formulas). Write HTML, never Markdown: <strong>bold</strong> not **bold**, <ul><li> not \"- item\", <h2> not \"## heading\". This field also accepts an inline image: put an <img src=\"...\"> in it, where src is a direct image URL that renders in <img src> (a page URL that merely contains an image does not work). Use finalize_image_upload to host an image yourself, or a direct URL the user supplied. Never invent an image URL — omit the image instead of risking a broken one."
                 },
                 "items": {
                   "type": "array",
@@ -610,12 +610,12 @@
               },
               "summaryTemplate": {
                 "type": "string",
-                "description": "Summary template. Allows description-scope rich text (headings/lists/links/images/<span> etc.). Supports math formulas: write `<span data-type=\"math-formula\" data-latex=\"x^2+1\"></span>`, rendered by KaTeX on the frontend. Supports variable placeholders `<art-field data-type=\"fieldVariable\" data-cid=\"score\"></art-field>` (cid can be score / level / a question code). This field also accepts an inline image: put an <img src=\"...\"> in it, where src is a direct image URL that renders in <img src> (a page URL that merely contains an image does not work). Use finalize_image_upload to host an image yourself, or a direct URL the user supplied. Never invent an image URL — omit the image instead of risking a broken one.",
+                "description": "Summary template. Allows description-scope rich text (headings/lists/links/images/<span> etc.). Supports math formulas: write `<span data-type=\"math-formula\" data-latex=\"x^2+1\"></span>`, rendered by KaTeX on the frontend. Supports variable placeholders `<art-field data-type=\"fieldVariable\" data-cid=\"score\"></art-field>` (cid can be score / level / a question code). Write HTML, never Markdown: <strong>bold</strong> not **bold**, <ul><li> not \"- item\", <h2> not \"## heading\". This field also accepts an inline image: put an <img src=\"...\"> in it, where src is a direct image URL that renders in <img src> (a page URL that merely contains an image does not work). Use finalize_image_upload to host an image yourself, or a direct URL the user supplied. Never invent an image URL — omit the image instead of risking a broken one.",
                 "maxLength": 5000
               },
               "suggestionsTemplate": {
                 "type": "string",
-                "description": "Suggestions template; same rich-text rules as summaryTemplate.",
+                "description": "Suggestions template; same rich-text rules as summaryTemplate. Write HTML, never Markdown: <strong>bold</strong> not **bold**, <ul><li> not \"- item\", <h2> not \"## heading\".",
                 "maxLength": 5000
               },
               "levels": {
@@ -787,7 +787,7 @@
                     "description": {
                       "type": "string",
                       "maxLength": 5000,
-                      "description": "Result-page content shown when this outcome wins. Allows description-scope rich text (headings/lists/links/images etc.). This field also accepts an inline image: put an <img src=\"...\"> in it, where src is a direct image URL that renders in <img src> (a page URL that merely contains an image does not work). Use finalize_image_upload to host an image yourself, or a direct URL the user supplied. Never invent an image URL — omit the image instead of risking a broken one."
+                      "description": "Result-page content shown when this outcome wins. Allows description-scope rich text (headings/lists/links/images etc.). Write HTML, never Markdown: <strong>bold</strong> not **bold**, <ul><li> not \"- item\", <h2> not \"## heading\". This field also accepts an inline image: put an <img src=\"...\"> in it, where src is a direct image URL that renders in <img src> (a page URL that merely contains an image does not work). Use finalize_image_upload to host an image yourself, or a direct URL the user supplied. Never invent an image URL — omit the image instead of risking a broken one."
                     },
                     "cta": {
                       "type": "object",
@@ -865,7 +865,7 @@
                         "type": "null"
                       }
                     ],
-                    "description": "Report length: brief (about 150 words, verdict + 1-2 findings + next steps), standard (default, about 300 words, 2-4 sections, one chart) or detailed (about 650 words, up to 6 sections and 3 charts). null restores standard. A length rule written in style takes precedence."
+                    "description": "Report length: brief (about 150 words, verdict + 1-2 findings + next steps), standard (default, about 300 words, 2-4 sections, one chart) or detailed (about 650 words, up to 6 sections and 3 charts). null restores standard. brief and standard are hard caps: a longer word count, more sections or more detail asked for in instructions or style is ignored. Only detailed lets a length rule written in style take precedence."
                   }
                 },
                 "additionalProperties": false
@@ -1389,7 +1389,7 @@
           },
           "description": {
             "type": "string",
-            "description": "New description; pass an empty string to clear. Allows description-scope rich text (including <img src>). This field also accepts an inline image: put an <img src=\"...\"> in it, where src is a direct image URL that renders in <img src> (a page URL that merely contains an image does not work). Use finalize_image_upload to host an image yourself, or a direct URL the user supplied. Never invent an image URL — omit the image instead of risking a broken one.",
+            "description": "New description; pass an empty string to clear. Allows description-scope rich text (including <img src>). Write HTML, never Markdown: <strong>bold</strong> not **bold**, <ul><li> not \"- item\", <h2> not \"## heading\". This field also accepts an inline image: put an <img src=\"...\"> in it, where src is a direct image URL that renders in <img src> (a page URL that merely contains an image does not work). Use finalize_image_upload to host an image yourself, or a direct URL the user supplied. Never invent an image URL — omit the image instead of risking a broken one.",
             "maxLength": 2000
           },
           "isActive": {
@@ -1461,12 +1461,12 @@
               },
               "summaryTemplate": {
                 "type": "string",
-                "description": "Summary template. Allows description-scope rich text (headings/lists/links/images/<span> etc.). Supports math formulas: write `<span data-type=\"math-formula\" data-latex=\"x^2+1\"></span>`, rendered by KaTeX on the frontend. Supports variable placeholders `<art-field data-type=\"fieldVariable\" data-cid=\"score\"></art-field>` (cid can be score / level / a question code). This field also accepts an inline image: put an <img src=\"...\"> in it, where src is a direct image URL that renders in <img src> (a page URL that merely contains an image does not work). Use finalize_image_upload to host an image yourself, or a direct URL the user supplied. Never invent an image URL — omit the image instead of risking a broken one.",
+                "description": "Summary template. Allows description-scope rich text (headings/lists/links/images/<span> etc.). Supports math formulas: write `<span data-type=\"math-formula\" data-latex=\"x^2+1\"></span>`, rendered by KaTeX on the frontend. Supports variable placeholders `<art-field data-type=\"fieldVariable\" data-cid=\"score\"></art-field>` (cid can be score / level / a question code). Write HTML, never Markdown: <strong>bold</strong> not **bold**, <ul><li> not \"- item\", <h2> not \"## heading\". This field also accepts an inline image: put an <img src=\"...\"> in it, where src is a direct image URL that renders in <img src> (a page URL that merely contains an image does not work). Use finalize_image_upload to host an image yourself, or a direct URL the user supplied. Never invent an image URL — omit the image instead of risking a broken one.",
                 "maxLength": 5000
               },
               "suggestionsTemplate": {
                 "type": "string",
-                "description": "Suggestions template; same rich-text rules as summaryTemplate.",
+                "description": "Suggestions template; same rich-text rules as summaryTemplate. Write HTML, never Markdown: <strong>bold</strong> not **bold**, <ul><li> not \"- item\", <h2> not \"## heading\".",
                 "maxLength": 5000
               },
               "levels": {
@@ -1638,7 +1638,7 @@
                     "description": {
                       "type": "string",
                       "maxLength": 5000,
-                      "description": "Result-page content shown when this outcome wins. Allows description-scope rich text (headings/lists/links/images etc.). This field also accepts an inline image: put an <img src=\"...\"> in it, where src is a direct image URL that renders in <img src> (a page URL that merely contains an image does not work). Use finalize_image_upload to host an image yourself, or a direct URL the user supplied. Never invent an image URL — omit the image instead of risking a broken one."
+                      "description": "Result-page content shown when this outcome wins. Allows description-scope rich text (headings/lists/links/images etc.). Write HTML, never Markdown: <strong>bold</strong> not **bold**, <ul><li> not \"- item\", <h2> not \"## heading\". This field also accepts an inline image: put an <img src=\"...\"> in it, where src is a direct image URL that renders in <img src> (a page URL that merely contains an image does not work). Use finalize_image_upload to host an image yourself, or a direct URL the user supplied. Never invent an image URL — omit the image instead of risking a broken one."
                     },
                     "cta": {
                       "type": "object",
@@ -1716,7 +1716,7 @@
                         "type": "null"
                       }
                     ],
-                    "description": "Report length: brief (about 150 words, verdict + 1-2 findings + next steps), standard (default, about 300 words, 2-4 sections, one chart) or detailed (about 650 words, up to 6 sections and 3 charts). null restores standard. A length rule written in style takes precedence."
+                    "description": "Report length: brief (about 150 words, verdict + 1-2 findings + next steps), standard (default, about 300 words, 2-4 sections, one chart) or detailed (about 650 words, up to 6 sections and 3 charts). null restores standard. brief and standard are hard caps: a longer word count, more sections or more detail asked for in instructions or style is ignored. Only detailed lets a length rule written in style take precedence."
                   }
                 },
                 "additionalProperties": false
@@ -3602,12 +3602,12 @@
           "description": {
             "type": "string",
             "maxLength": 2000,
-            "description": "New question note; pass an empty string to clear. This field also accepts an inline image: put an <img src=\"...\"> in it, where src is a direct image URL that renders in <img src> (a page URL that merely contains an image does not work). Use finalize_image_upload to host an image yourself, or a direct URL the user supplied. Never invent an image URL — omit the image instead of risking a broken one."
+            "description": "New question note; pass an empty string to clear. Write HTML, never Markdown: <strong>bold</strong> not **bold**, <ul><li> not \"- item\", <h2> not \"## heading\". This field also accepts an inline image: put an <img src=\"...\"> in it, where src is a direct image URL that renders in <img src> (a page URL that merely contains an image does not work). Use finalize_image_upload to host an image yourself, or a direct URL the user supplied. Never invent an image URL — omit the image instead of risking a broken one."
           },
           "explain": {
             "type": "string",
             "maxLength": 2000,
-            "description": "New answer explanation (the question's \"answer explanation\" field, not the question note); pass an empty string to clear. Same rich-text rules as description."
+            "description": "New answer explanation (the question's \"answer explanation\" field, not the question note); pass an empty string to clear. Same rich-text rules as description. Write HTML, never Markdown: <strong>bold</strong> not **bold**, <ul><li> not \"- item\", <h2> not \"## heading\"."
           },
           "required": {
             "type": "boolean",
@@ -3616,7 +3616,7 @@
           "content": {
             "type": "string",
             "maxLength": 5000,
-            "description": "Statement block only: the new body text, which is the whole block. Same rich-text rules as description. It cannot be emptied — delete_question the block if you no longer want it. This field also accepts an inline image: put an <img src=\"...\"> in it, where src is a direct image URL that renders in <img src> (a page URL that merely contains an image does not work). Use finalize_image_upload to host an image yourself, or a direct URL the user supplied. Never invent an image URL — omit the image instead of risking a broken one."
+            "description": "Statement block only: the new body text, which is the whole block. Same rich-text rules as description. It cannot be emptied — delete_question the block if you no longer want it. Write HTML, never Markdown: <strong>bold</strong> not **bold**, <ul><li> not \"- item\", <h2> not \"## heading\". This field also accepts an inline image: put an <img src=\"...\"> in it, where src is a direct image URL that renders in <img src> (a page URL that merely contains an image does not work). Use finalize_image_upload to host an image yourself, or a direct URL the user supplied. Never invent an image URL — omit the image instead of risking a broken one."
           },
           "items": {
             "type": "array",
@@ -4867,7 +4867,7 @@
           },
           "description": {
             "type": "string",
-            "description": "Translated form description",
+            "description": "Translated form description. Write HTML, never Markdown: <strong>bold</strong> not **bold**, <ul><li> not \"- item\", <h2> not \"## heading\".",
             "maxLength": 2000
           },
           "fields": {
@@ -4886,7 +4886,7 @@
                 },
                 "description": {
                   "type": "string",
-                  "description": "Translated question note."
+                  "description": "Translated question note. Write HTML, never Markdown: <strong>bold</strong> not **bold**, <ul><li> not \"- item\", <h2> not \"## heading\"."
                 },
                 "placeholder": {
                   "type": "string",
@@ -4898,7 +4898,7 @@
                 },
                 "content": {
                   "type": "string",
-                  "description": "Statement-style blocks: translated body text."
+                  "description": "Statement-style blocks: translated body text. Write HTML, never Markdown: <strong>bold</strong> not **bold**, <ul><li> not \"- item\", <h2> not \"## heading\"."
                 },
                 "trueLabel": {
                   "type": "string",
@@ -4910,7 +4910,7 @@
                 },
                 "explain": {
                   "type": "string",
-                  "description": "Knowledge quiz: translated answer explanation shown in the answer review."
+                  "description": "Knowledge quiz: translated answer explanation shown in the answer review. Write HTML, never Markdown: <strong>bold</strong> not **bold**, <ul><li> not \"- item\", <h2> not \"## heading\"."
                 },
                 "words": {
                   "type": "array",
@@ -4987,11 +4987,11 @@
                   },
                   "summaryTemplate": {
                     "type": "string",
-                    "description": "Translated summary template (keep the placeholders intact)."
+                    "description": "Translated summary template (keep the placeholders intact). Write HTML, never Markdown: <strong>bold</strong> not **bold**, <ul><li> not \"- item\", <h2> not \"## heading\"."
                   },
                   "suggestionsTemplate": {
                     "type": "string",
-                    "description": "Translated suggestions template (keep the placeholders intact)."
+                    "description": "Translated suggestions template (keep the placeholders intact). Write HTML, never Markdown: <strong>bold</strong> not **bold**, <ul><li> not \"- item\", <h2> not \"## heading\"."
                   },
                   "levels": {
                     "type": "array",
@@ -5122,7 +5122,7 @@
                         },
                         "description": {
                           "type": "string",
-                          "description": "Translated outcome result-page content."
+                          "description": "Translated outcome result-page content. Write HTML, never Markdown: <strong>bold</strong> not **bold**, <ul><li> not \"- item\", <h2> not \"## heading\"."
                         },
                         "cta": {
                           "type": "object",
@@ -5166,7 +5166,7 @@
               },
               "description": {
                 "type": "string",
-                "description": "Translated booking block description. Plain text or HTML (<p>, <strong>, <em>, <u>, <s>, <a href>, <ul>/<ol>/<li>); no images or video; at most 500 visible characters.",
+                "description": "Translated booking block description. Plain text or HTML (<p>, <strong>, <em>, <u>, <s>, <a href>, <ul>/<ol>/<li>), never Markdown; no images or video; at most 500 visible characters.",
                 "maxLength": 10000
               },
               "buttonText": {
@@ -5193,7 +5193,7 @@
               },
               "description": {
                 "type": "string",
-                "description": "Translated block description. Plain text or HTML (<p>, <strong>, <em>, <u>, <s>, <a href>, <ul>/<ol>/<li>); no images or video; at most 500 visible characters.",
+                "description": "Translated block description. Plain text or HTML (<p>, <strong>, <em>, <u>, <s>, <a href>, <ul>/<ol>/<li>), never Markdown; no images or video; at most 500 visible characters.",
                 "maxLength": 10000
               },
               "buttonText": {
@@ -6259,7 +6259,7 @@
                 },
                 "metadata": {
                   "type": "object",
-                  "description": "Channel attribution { utmSource, utmMedium, utmCampaign, utmTerm, utmContent, referrer }"
+                  "description": "Channel attribution { utmSource, utmMedium, utmCampaign, utmTerm, utmContent, referrer, params } — params holds the URL parameters (hidden fields) declared on the quiz"
                 },
                 "data": {
                   "type": [
@@ -6379,7 +6379,7 @@
           },
           "metadata": {
             "type": "object",
-            "description": "Channel attribution { utmSource, utmMedium, utmCampaign, utmTerm, utmContent, referrer }"
+            "description": "Channel attribution { utmSource, utmMedium, utmCampaign, utmTerm, utmContent, referrer, params } — params holds the URL parameters (hidden fields) declared on the quiz"
           },
           "data": {
             "type": [
@@ -7671,7 +7671,7 @@
           },
           "delivery": {
             "type": "object",
-            "description": "Delivery state: { isActive, submissionAccess, reportGateRequireCode, timeLimit, sharing, answerSheet, crowdCompare, instantFeedback, hideScores, booking, feedback, allowPdfDownload, gaTrackingId, sharedWithAll, searchIndexable }; get_form_share_info adds the team-level examineeSignupDisabled (respondent self-signup off = a login-gated quiz turns away anyone not on the roster)"
+            "description": "Delivery state: { isActive, submissionAccess, reportGateRequireCode, timeLimit, sharing, answerSheet, crowdCompare, instantFeedback, hideScores, booking, feedback, allowPdfDownload, gaTrackingId, tracking, hiddenFields, sharedWithAll, searchIndexable }; get_form_share_info adds the team-level examineeSignupDisabled (respondent self-signup off = a login-gated quiz turns away anyone not on the roster)"
           }
         }
       },
@@ -7703,7 +7703,7 @@
     {
       "name": "update_form_settings",
       "title": "Update form settings",
-      "description": "Change how a form of the current team is delivered, as opposed to what it says (use update_form for title / questions / report / theme). Editable: submissionAccess (who may answer and whether seeing the report needs a login — this is the lead-capture gate), reportGateRequireCode (whether that login gate collects an emailed verification code, trading completion rate against lead quality), timeLimit, sharing (the result-page share button and personalised share card, which is what drives organic spread), answerSheet, crowdCompare (show respondents what share of people picked the same option — off by default, not for knowledge quizzes), instantFeedback (knowledge quizzes only, on by default for newly created ones except level tests: respondents submit each page and see right / wrong, the correct answer and the explanation before moving on), hideScores (hide every score respondents see — report, question points, instant feedback and answer review — while keeping levels and right / wrong), booking (the result-page block that opens the team's Cal.com scheduling link; bookings sync back read-only), feedback (a one-question feedback block on the result page), allowPdfDownload (respondents can download their full report as a PDF — Pro), gaTrackingId, sharedWithAll (whether every team member can see this form), searchIndexable (whether search engines may list the quiz), and slug (the custom path that gives the public link a memorable, SEO-friendly address). Only the keys you pass are changed. Read the current values with get_form_share_info.",
+      "description": "Change how a form of the current team is delivered, as opposed to what it says (use update_form for title / questions / report / theme). Editable: submissionAccess (who may answer and whether seeing the report needs a login — this is the lead-capture gate), reportGateRequireCode (whether that login gate collects an emailed verification code, trading completion rate against lead quality), timeLimit, sharing (the result-page share button and personalised share card, which is what drives organic spread), answerSheet, crowdCompare (show respondents what share of people picked the same option — off by default, not for knowledge quizzes), instantFeedback (knowledge quizzes only, on by default for newly created ones except level tests: respondents submit each page and see right / wrong, the correct answer and the explanation before moving on), hideScores (hide every score respondents see — report, question points, instant feedback and answer review — while keeping levels and right / wrong), booking (the result-page block that opens the team's Cal.com scheduling link; bookings sync back read-only), feedback (a one-question feedback block on the result page), allowPdfDownload (respondents can download their full report as a PDF — Pro), gaTrackingId, tracking (ad pixels for Meta / TikTok / LinkedIn / GTM that fire conversion events — Pro; by default the quiz inherits the team's pixels), hiddenFields (URL parameters such as partner or campaign_id captured with each response for attribution), sharedWithAll (whether every team member can see this form), searchIndexable (whether search engines may list the quiz), and slug (the custom path that gives the public link a memorable, SEO-friendly address). Only the keys you pass are changed. Read the current values with get_form_share_info.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -7767,7 +7767,7 @@
               "enabled"
             ],
             "additionalProperties": false,
-            "description": "The answer-sheet sidebar on the answering page: a question navigator that lets respondents jump to any question. Off by default — most quizzes are meant to be answered straight through to the result page; turn it on for long knowledge quizzes."
+            "description": "The answer-sheet sidebar on the answering page: a question navigator that lets respondents jump to any question. On by default for newly created forms; turn it off for short quizzes meant to be answered straight through to the result page."
           },
           "crowdCompare": {
             "type": "object",
@@ -7822,7 +7822,7 @@
               },
               "description": {
                 "type": "string",
-                "description": "Block copy. Plain text or HTML (<p>, <strong>, <em>, <u>, <s>, <a href>, <ul>/<ol>/<li>); no images or video; at most 500 visible characters.",
+                "description": "Block copy. Plain text or HTML (<p>, <strong>, <em>, <u>, <s>, <a href>, <ul>/<ol>/<li>), never Markdown; no images or video; at most 500 visible characters.",
                 "maxLength": 10000
               },
               "buttonText": {
@@ -7898,7 +7898,7 @@
               "description": {
                 "type": "string",
                 "maxLength": 10000,
-                "description": "Block copy; empty = built-in default. Plain text or HTML (<p>, <strong>, <em>, <u>, <s>, <a href>, <ul>/<ol>/<li>); no images or video; at most 500 visible characters."
+                "description": "Block copy; empty = built-in default. Plain text or HTML (<p>, <strong>, <em>, <u>, <s>, <a href>, <ul>/<ol>/<li>), never Markdown; no images or video; at most 500 visible characters."
               },
               "buttonText": {
                 "type": "string",
@@ -7919,6 +7919,87 @@
           "gaTrackingId": {
             "type": "string",
             "description": "Google Analytics measurement id (G-XXXXXX) or Universal Analytics id (UA-XXXX-Y). Pass an empty string to clear."
+          },
+          "tracking": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "mode": {
+                    "type": "string",
+                    "enum": [
+                      "inherit",
+                      "custom",
+                      "off"
+                    ],
+                    "description": "inherit (default) uses the team's pixels, custom uses only the ids given here, off loads no pixel on this quiz"
+                  },
+                  "includeResultData": {
+                    "type": "boolean",
+                    "description": "Whether conversion events carry the outcome / level / score (default true). Turn off for sensitive topics such as health or finance."
+                  },
+                  "metaPixelId": {
+                    "type": "string",
+                    "description": "Meta Pixel ID, 15-16 digits"
+                  },
+                  "tiktokPixelId": {
+                    "type": "string",
+                    "description": "TikTok Pixel code, uppercase letters and digits"
+                  },
+                  "linkedinPartnerId": {
+                    "type": "string",
+                    "description": "LinkedIn Insight Tag partner id"
+                  },
+                  "linkedinConversionIds": {
+                    "type": "object",
+                    "properties": {
+                      "start": {
+                        "type": "string"
+                      },
+                      "lead": {
+                        "type": "string"
+                      },
+                      "complete": {
+                        "type": "string"
+                      },
+                      "cta": {
+                        "type": "string"
+                      },
+                      "booking": {
+                        "type": "string"
+                      }
+                    },
+                    "additionalProperties": false,
+                    "description": "LinkedIn conversion ids created in Campaign Manager, one per event (quiz start, lead captured, quiz completed, result CTA click, booking)"
+                  },
+                  "gtmContainerId": {
+                    "type": "string",
+                    "description": "Google Tag Manager container id (GTM-XXXX); only loaded on the team's custom domain"
+                  }
+                },
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Ad tracking pixels for this quiz (Pro). Replaces the whole group; null clears it back to inheriting the team. Fires standard conversion events (quiz start, lead, completion, CTA click, booking) so ad platforms can optimise on them."
+          },
+          "hiddenFields": {
+            "anyOf": [
+              {
+                "type": "array",
+                "maxItems": 10,
+                "items": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z0-9_]{0,31}$"
+                }
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "URL parameters to capture with each response (hidden fields), e.g. [\"partner\", \"campaign_id\"]: opening the quiz link with ?partner=acme stores partner=acme on the record, where it shows in record detail, exports and webhook / Zapier payloads. Lowercase names, up to 10; utm_* and system names (email, name, lang, ref, embed…) are reserved. Replaces the whole list; null or [] clears it."
           },
           "sharedWithAll": {
             "type": "boolean",
@@ -7962,7 +8043,7 @@
           },
           "delivery": {
             "type": "object",
-            "description": "Delivery state: { isActive, submissionAccess, reportGateRequireCode, timeLimit, sharing, answerSheet, crowdCompare, instantFeedback, hideScores, booking, feedback, allowPdfDownload, gaTrackingId, sharedWithAll, searchIndexable }; get_form_share_info adds the team-level examineeSignupDisabled (respondent self-signup off = a login-gated quiz turns away anyone not on the roster)"
+            "description": "Delivery state: { isActive, submissionAccess, reportGateRequireCode, timeLimit, sharing, answerSheet, crowdCompare, instantFeedback, hideScores, booking, feedback, allowPdfDownload, gaTrackingId, tracking, hiddenFields, sharedWithAll, searchIndexable }; get_form_share_info adds the team-level examineeSignupDisabled (respondent self-signup off = a login-gated quiz turns away anyone not on the roster)"
           }
         }
       },

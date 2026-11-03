@@ -5,6 +5,28 @@ version the bridge reports during a tokenless handshake comes from `bin/introspe
 which mirrors what `https://payload.rooquiz.com/api/mcp` answers `initialize` with and moves
 on its own schedule — see `scripts/snapshot-tools.mjs`.
 
+## Unreleased
+
+### Changed
+
+- **Snapshot regenerated against rooquiz-payload `main` (`dc6ccc6f`).** Same 44 tools:
+  - `update_form_settings` takes two new delivery keys, which `get_form_share_info` also
+    reports: `tracking` (Meta / TikTok / LinkedIn / GTM ad pixels that fire conversion
+    events, Pro; `inherit` from the team by default, `custom` or `off`), and `hiddenFields`
+    (up to 10 URL parameters such as `partner` stored on each record).
+  - `list_records` / `get_record` describe `metadata.params`, which holds those URL
+    parameters. Embed codes from `get_form_share_info` pass them through from the host
+    page. This changes tool behavior, not the snapshot.
+  - The answer sheet is back **on** by default for new forms, and the `answerSheet`
+    description says to turn it off for short quizzes.
+  - `report.aiReport.length`: `brief` and `standard` are hard caps now. Only `detailed`
+    lets a length rule in `style` win.
+  - Rich-text fields in `create_form`, `update_form`, `update_question` and
+    `update_form_translation` say to write HTML, never Markdown. The server also converts
+    any Markdown it receives, and the Markdown already stored, to HTML.
+
+- `lhm.plugin.json`'s `tools` array re-dumped to match.
+
 ## 1.4.0 — 2026-11-03
 
 ### Added
