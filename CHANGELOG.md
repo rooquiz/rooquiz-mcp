@@ -17,7 +17,15 @@ on its own schedule — see `scripts/snapshot-tools.mjs`.
 
 ### Changed
 
-- **Snapshot regenerated against rooquiz-payload `main` (`566c1e07`).** Same 44 tools:
+- **Snapshot regenerated against rooquiz-payload `main` (`d1d78ea5`).** Same 44 tools:
+  - AI quizzes take `report.aiReport.length` (`brief`, `standard` (the default) or
+    `detailed`) in `create_form` and `update_form`; `null` restores `standard`. The server
+    `instructions` mention it.
+  - `submissionAccess` lost `examinee_only` (sign in before answering) in
+    `update_form_settings` and `get_form_share_info`, leaving `public` and
+    `login_to_view_report`.
+  - The team modules setting is gone, so the lead tools are always listed. This changes
+    what an authenticated `tools/list` returns, not the snapshot.
   - Hiding scores moved from `report.overallAnalysis.hideOverallScore` (`create_form`,
     `update_form`) to the form-level `hideScores.enabled` in `update_form_settings`, which
     `get_form_share_info` also reports. It now hides every score the respondent sees,

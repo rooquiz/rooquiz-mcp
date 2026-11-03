@@ -12,7 +12,7 @@
   "capabilities": {
     "tools": {}
   },
-  "instructions": "RooQuiz: lightweight assessment platform for lead capture and viral sharing, not formal exams.\n\nSCENES (set at creation, immutable):\n- knowledge_quiz: scored exam; each question carries score + correctAnswer.\n- scored_quiz: put a score on each choices[i] (Option Scoring); total = their sum unless report.formula is set. Each dimension needs its own formula; choices[i].dimensionScores optionally overrides a choice for one dimension (see create_form).\n- outcome_quiz: \"which X are you\" typing quiz, no scores. Define types in report.outcomes, then every choice votes via choices[i].outcomes (TrueFalse uses trueOutcomes/falseOutcomes); most-voted type wins.\n- ai_quiz: nothing is scored; may include Attachment uploads (kind required). An AI writes each report from report.aiReport.instructions (reference answers as {{code}}) plus optional style. Optional report.outcomes: internal tags the AI picks per respondent.\n\nCODES: every question has a stable `code`. Formulas, dimensionAnalysis and every question edit reference it. Call get_form first to read the current codes — never guess or invent one.\n\nTERMINOLOGY: \"examinee\" and \"respondent\" are the same thing — the person who answers a quiz. The product UI calls them Respondents; the tools and fields keep the examinee wording (list_examinees / get_examinee / update_examinee, examineeId). A user asking about respondents means these tools.\n\nFASTEST PATH: check list_templates and use create_form_from_template when a suitable template exists; reach for create_form only for genuinely new material.\n\nTRANSLATIONS: a form has ONE source structure plus a primary `language`. Every other language is a translation mirroring that source — identical codes, only human-readable text differs. Change structure on the source form; change wording via update_form_translation.\n\nMASKED PII: read tools return respondent name / email / phone-typed custom fields masked (J*n, j***g@example.com, +86 138****8000), and so are email addresses or phone numbers a respondent typed into their answers. Masking is irreversible. Relay masked values to the user as-is, never pass one back as an argument, and never write one back. Address a respondent by examineeId, a submission by its record id, a lead by its leadId.\n\nTEAM SCOPE: every tool acts on the team this token is bound to (get_active_tenant / switch_active_tenant).\n\nBATCHING: assign_leads and set_lead_tags accept many ids per call — pass them all at once instead of looping one call per lead.",
+  "instructions": "RooQuiz: lightweight assessment platform for lead capture and viral sharing, not formal exams.\n\nSCENES (set at creation, immutable):\n- knowledge_quiz: scored exam; each question carries score + correctAnswer.\n- scored_quiz: put a score on each choices[i] (Option Scoring); total = their sum unless report.formula is set. Each dimension needs its own formula; choices[i].dimensionScores optionally overrides a choice for one dimension (see create_form).\n- outcome_quiz: \"which X are you\" typing quiz, no scores. Define types in report.outcomes, then every choice votes via choices[i].outcomes (TrueFalse uses trueOutcomes/falseOutcomes); most-voted type wins.\n- ai_quiz: nothing is scored; may include Attachment uploads (kind required). An AI writes each report from report.aiReport.instructions (reference answers as {{code}}) plus optional style/length. Optional report.outcomes: internal tags the AI picks per respondent.\n\nCODES: every question has a stable `code`. Formulas, dimensionAnalysis and every question edit reference it. Call get_form first to read the current codes — never guess or invent one.\n\nTERMINOLOGY: \"examinee\" and \"respondent\" are the same thing — the person who answers a quiz. The product UI calls them Respondents; the tools and fields keep the examinee wording (list_examinees / get_examinee / update_examinee, examineeId). A user asking about respondents means these tools.\n\nFASTEST PATH: check list_templates and use create_form_from_template when a suitable template exists; reach for create_form only for genuinely new material.\n\nTRANSLATIONS: a form has ONE source structure plus a primary `language`. Every other language is a translation mirroring that source — identical codes, only human-readable text differs. Change structure on the source form; change wording via update_form_translation.\n\nMASKED PII: read tools return respondent name / email / phone-typed custom fields masked (J*n, j***g@example.com, +86 138****8000), and so are email addresses or phone numbers a respondent typed into their answers. Masking is irreversible. Relay masked values to the user as-is, never pass one back as an argument, and never write one back. Address a respondent by examineeId, a submission by its record id, a lead by its leadId.\n\nTEAM SCOPE: every tool acts on the team this token is bound to (get_active_tenant / switch_active_tenant).\n\nBATCHING: assign_leads and set_lead_tags accept many ids per call — pass them all at once instead of looping one call per lead.",
   "tools": [
     {
       "name": "create_form",
@@ -850,6 +850,22 @@
                       }
                     ],
                     "description": "Optional style and rules (tone, length, things to avoid), plain text, at most 5000 characters."
+                  },
+                  "length": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "enum": [
+                          "brief",
+                          "standard",
+                          "detailed"
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "Report length: brief (about 150 words, verdict + 1-2 findings + next steps), standard (default, about 300 words, 2-4 sections, one chart) or detailed (about 650 words, up to 6 sections and 3 charts). null restores standard. A length rule written in style takes precedence."
                   }
                 },
                 "additionalProperties": false
@@ -1685,6 +1701,22 @@
                       }
                     ],
                     "description": "Optional style and rules (tone, length, things to avoid), plain text, at most 5000 characters."
+                  },
+                  "length": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "enum": [
+                          "brief",
+                          "standard",
+                          "detailed"
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "Report length: brief (about 150 words, verdict + 1-2 findings + next steps), standard (default, about 300 words, 2-4 sections, one chart) or detailed (about 650 words, up to 6 sections and 3 charts). null restores standard. A length rule written in style takes precedence."
                   }
                 },
                 "additionalProperties": false
@@ -6464,7 +6496,7 @@
     {
       "name": "get_active_tenant",
       "title": "Get active team",
-      "description": "Return the team (tenant) this token is currently operating against. All write tools default to this team. Also reports examineeSignupDisabled: when true this team has switched respondent self-signup off, so only respondents already on its roster can sign in — every quiz that asks for a login (submissionAccess examinee_only, or login_to_view_report at the report gate) turns away anyone new. Check it before blaming a quiz for \"nobody can submit\".",
+      "description": "Return the team (tenant) this token is currently operating against. All write tools default to this team. Also reports examineeSignupDisabled: when true this team has switched respondent self-signup off, so only respondents already on its roster can sign in — every quiz that asks for a login at the report gate (submissionAccess login_to_view_report) turns away anyone new. Check it before blaming a quiz for \"nobody can submit\".",
       "inputSchema": {
         "type": "object",
         "properties": {},
@@ -7679,10 +7711,9 @@
             "type": "string",
             "enum": [
               "public",
-              "login_to_view_report",
-              "examinee_only"
+              "login_to_view_report"
             ],
-            "description": "public = anyone answers and sees the report; login_to_view_report = anyone answers but must sign in to see the report (the default, this is how leads get captured); examinee_only = a login is required before answering at all"
+            "description": "public = anyone answers and sees the report; login_to_view_report = anyone answers but must sign in to see the report (the default, this is how leads get captured)"
           },
           "reportGateRequireCode": {
             "type": "boolean",
@@ -7879,7 +7910,7 @@
           },
           "allowPdfDownload": {
             "type": "boolean",
-            "description": "Let respondents download their full report as a PDF. Pro only (switching it on is rejected on the Free plan). Takes effect only on gated quizzes — submissionAccess login_to_view_report or examinee_only — because the download is tied to the signed-in respondent."
+            "description": "Let respondents download their full report as a PDF. Pro only (switching it on is rejected on the Free plan). Takes effect only on gated quizzes (submissionAccess login_to_view_report) because the download is tied to the signed-in respondent."
           },
           "gaTrackingId": {
             "type": "string",

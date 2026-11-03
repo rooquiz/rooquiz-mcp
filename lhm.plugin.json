@@ -879,6 +879,22 @@
                       }
                     ],
                     "description": "Optional style and rules (tone, length, things to avoid), plain text, at most 5000 characters."
+                  },
+                  "length": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "enum": [
+                          "brief",
+                          "standard",
+                          "detailed"
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "Report length: brief (about 150 words, verdict + 1-2 findings + next steps), standard (default, about 300 words, 2-4 sections, one chart) or detailed (about 650 words, up to 6 sections and 3 charts). null restores standard. A length rule written in style takes precedence."
                   }
                 },
                 "additionalProperties": false
@@ -1346,6 +1362,22 @@
                       }
                     ],
                     "description": "Optional style and rules (tone, length, things to avoid), plain text, at most 5000 characters."
+                  },
+                  "length": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "enum": [
+                          "brief",
+                          "standard",
+                          "detailed"
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "Report length: brief (about 150 words, verdict + 1-2 findings + next steps), standard (default, about 300 words, 2-4 sections, one chart) or detailed (about 650 words, up to 6 sections and 3 charts). null restores standard. A length rule written in style takes precedence."
                   }
                 },
                 "additionalProperties": false
@@ -3960,7 +3992,7 @@
     },
     {
       "name": "get_active_tenant",
-      "description": "Return the team (tenant) this token is currently operating against. All write tools default to this team. Also reports examineeSignupDisabled: when true this team has switched respondent self-signup off, so only respondents already on its roster can sign in — every quiz that asks for a login (submissionAccess examinee_only, or login_to_view_report at the report gate) turns away anyone new. Check it before blaming a quiz for \"nobody can submit\".",
+      "description": "Return the team (tenant) this token is currently operating against. All write tools default to this team. Also reports examineeSignupDisabled: when true this team has switched respondent self-signup off, so only respondents already on its roster can sign in — every quiz that asks for a login at the report gate (submissionAccess login_to_view_report) turns away anyone new. Check it before blaming a quiz for \"nobody can submit\".",
       "inputSchema": {
         "type": "object",
         "properties": {},
@@ -4300,10 +4332,9 @@
             "type": "string",
             "enum": [
               "public",
-              "login_to_view_report",
-              "examinee_only"
+              "login_to_view_report"
             ],
-            "description": "public = anyone answers and sees the report; login_to_view_report = anyone answers but must sign in to see the report (the default, this is how leads get captured); examinee_only = a login is required before answering at all"
+            "description": "public = anyone answers and sees the report; login_to_view_report = anyone answers but must sign in to see the report (the default, this is how leads get captured)"
           },
           "reportGateRequireCode": {
             "type": "boolean",
@@ -4500,7 +4531,7 @@
           },
           "allowPdfDownload": {
             "type": "boolean",
-            "description": "Let respondents download their full report as a PDF. Pro only (switching it on is rejected on the Free plan). Takes effect only on gated quizzes — submissionAccess login_to_view_report or examinee_only — because the download is tied to the signed-in respondent."
+            "description": "Let respondents download their full report as a PDF. Pro only (switching it on is rejected on the Free plan). Takes effect only on gated quizzes (submissionAccess login_to_view_report) because the download is tied to the signed-in respondent."
           },
           "gaTrackingId": {
             "type": "string",
