@@ -50,8 +50,8 @@
               "ja_JP",
               "ko_KR"
             ],
-            "description": "Default zh_CN",
-            "default": "zh_CN"
+            "description": "Default en_US",
+            "default": "en_US"
           },
           "description": {
             "type": "string",

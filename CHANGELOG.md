@@ -18,7 +18,16 @@ on its own schedule — see `scripts/snapshot-tools.mjs`.
 
 ### Changed
 
-- **Snapshot regenerated against rooquiz-payload `main` (`cf05cab2`):**
+- **Snapshot regenerated against rooquiz-payload `main` (`2553f809`):**
+  - `create_form` defaults `language` to `en_US`, not `zh_CN`.
+  - These change tool behavior, not the snapshot:
+    - `delete_question` refuses a question that an overall or dimension formula still
+      references, and says which formula blocks it.
+    - Clearing dimensions or the overall formula in `update_form` now sticks.
+    - `restore_form` clears the slug if another form took it in the meantime.
+    - `duplicate_form` keeps the gate, booking, feedback, crowd-compare and search settings.
+    - The 60 requests a minute limit is counted per token and no longer resets when an
+      OAuth token refreshes.
   - `tracking` (ad pixels), added in 1.4.1, is gone again from `update_form_settings` and
     `get_form_share_info`. Pixels are set once per team in the dashboard. `hiddenFields`
     stays.
