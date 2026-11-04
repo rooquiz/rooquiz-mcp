@@ -5,6 +5,26 @@ version the bridge reports during a tokenless handshake comes from `bin/introspe
 which mirrors what `https://payload.rooquiz.com/api/mcp` answers `initialize` with and moves
 on its own schedule — see `scripts/snapshot-tools.mjs`.
 
+## Unreleased
+
+### Changed
+
+- **Snapshot regenerated against rooquiz-payload `main` (`1082ccf2`).** Same 44 tools:
+  - `suggestionsTemplate` is gone from `report.overallAnalysis` in `create_form`,
+    `update_form` and `update_form_translation`. Nothing rendered it, so passing it now
+    fails and points to `summaryTemplate`.
+  - `summaryTemplate` takes two variables, `{{score}}` and `{{level}}`. Any other variable
+    is rejected, including the question-code variables it used to advertise. Math formulas
+    carry only `data-latex`, and the server renders them.
+  - Score level descriptions, and their translations, say to write HTML, never Markdown.
+    Form titles and translated titles are plain text. The server also converts Markdown in
+    question stems, choices and plain-text names.
+
+- **Preview skills re-vendored from rooquiz-skills `ddabff3`.** All four say rich-text
+  fields take HTML, not Markdown.
+
+- `lhm.plugin.json`'s `tools` array re-dumped to match.
+
 ## 1.4.1 — 2026-11-03
 
 ### Changed

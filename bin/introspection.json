@@ -23,7 +23,7 @@
         "properties": {
           "title": {
             "type": "string",
-            "description": "Form title (1-200 characters)",
+            "description": "Form title (1-200 characters). Plain text: no HTML or Markdown.",
             "minLength": 1,
             "maxLength": 200
           },
@@ -610,12 +610,7 @@
               },
               "summaryTemplate": {
                 "type": "string",
-                "description": "Summary template. Allows description-scope rich text (headings/lists/links/images/<span> etc.). Supports math formulas: write `<span data-type=\"math-formula\" data-latex=\"x^2+1\"></span>`, rendered by KaTeX on the frontend. Supports variable placeholders `<art-field data-type=\"fieldVariable\" data-cid=\"score\"></art-field>` (cid can be score / level / a question code). Write HTML, never Markdown: <strong>bold</strong> not **bold**, <ul><li> not \"- item\", <h2> not \"## heading\". This field also accepts an inline image: put an <img src=\"...\"> in it, where src is a direct image URL that renders in <img src> (a page URL that merely contains an image does not work). Use finalize_image_upload to host an image yourself, or a direct URL the user supplied. Never invent an image URL — omit the image instead of risking a broken one.",
-                "maxLength": 5000
-              },
-              "suggestionsTemplate": {
-                "type": "string",
-                "description": "Suggestions template; same rich-text rules as summaryTemplate. Write HTML, never Markdown: <strong>bold</strong> not **bold**, <ul><li> not \"- item\", <h2> not \"## heading\".",
+                "description": "Summary template. Allows description-scope rich text (headings/lists/links/images/<span> etc.). Supports math formulas: write `<span data-type=\"math-formula\" data-latex=\"x^2+1\"></span>` with the LaTeX in data-latex and nothing inside; the server renders it. Two variables are available: write {{score}} (the overall score) and {{level}} (the matched level label); they are stored as `<art-field data-type=\"fieldVariable\" data-cid=\"score\"></art-field>`. Any other variable is rejected. Write HTML, never Markdown: <strong>bold</strong> not **bold**, <ul><li> not \"- item\", <h2> not \"## heading\". This field also accepts an inline image: put an <img src=\"...\"> in it, where src is a direct image URL that renders in <img src> (a page URL that merely contains an image does not work). Use finalize_image_upload to host an image yourself, or a direct URL the user supplied. Never invent an image URL — omit the image instead of risking a broken one.",
                 "maxLength": 5000
               },
               "levels": {
@@ -640,7 +635,8 @@
                     },
                     "description": {
                       "type": "string",
-                      "maxLength": 1000
+                      "maxLength": 1000,
+                      "description": "Result-page text shown when the score falls in this level. Write HTML, never Markdown: <strong>bold</strong> not **bold**, <ul><li> not \"- item\", <h2> not \"## heading\"."
                     },
                     "cta": {
                       "type": "object",
@@ -1447,7 +1443,7 @@
           },
           "report": {
             "type": "object",
-            "description": "Report configuration, merged by sub-key into form.report: passing overallAnalysis fields (title/formula/levels/summaryTemplate/suggestionsTemplate) replaces overallAnalysis, except that an omitted formula keeps the current one (pass formula: \"\" to remove it and fall back to the default sum); passing dimensionAnalysis replaces the dimension list (scored_quiz only; codes are kept by code or by name, omitted title / radar settings are preserved; an empty dimensions array clears it; a dimension still referenced by a question's dimensionScores or by report.formula cannot be removed); in the outcome_quiz scene passing outcomes replaces the outcome list (matched by code, existing images kept; cannot be emptied, and removing an outcome still referenced by question votes is rejected); passing sectionOrder replaces the result-page section order ([] restores the default); unspecified parts are kept. Common usage: either set custom question codes in create_form and pass report.formula / dimensionAnalysis in the same call, or call create_form first to get the auto-generated field codes, then update_form to fill in report.formula and/or dimensionAnalysis (which reference question codes).",
+            "description": "Report configuration, merged by sub-key into form.report: passing overallAnalysis fields (title/formula/levels/summaryTemplate) replaces overallAnalysis, except that an omitted formula keeps the current one (pass formula: \"\" to remove it and fall back to the default sum); passing dimensionAnalysis replaces the dimension list (scored_quiz only; codes are kept by code or by name, omitted title / radar settings are preserved; an empty dimensions array clears it; a dimension still referenced by a question's dimensionScores or by report.formula cannot be removed); in the outcome_quiz scene passing outcomes replaces the outcome list (matched by code, existing images kept; cannot be emptied, and removing an outcome still referenced by question votes is rejected); passing sectionOrder replaces the result-page section order ([] restores the default); unspecified parts are kept. Common usage: either set custom question codes in create_form and pass report.formula / dimensionAnalysis in the same call, or call create_form first to get the auto-generated field codes, then update_form to fill in report.formula and/or dimensionAnalysis (which reference question codes).",
             "properties": {
               "title": {
                 "type": "string",
@@ -1461,12 +1457,7 @@
               },
               "summaryTemplate": {
                 "type": "string",
-                "description": "Summary template. Allows description-scope rich text (headings/lists/links/images/<span> etc.). Supports math formulas: write `<span data-type=\"math-formula\" data-latex=\"x^2+1\"></span>`, rendered by KaTeX on the frontend. Supports variable placeholders `<art-field data-type=\"fieldVariable\" data-cid=\"score\"></art-field>` (cid can be score / level / a question code). Write HTML, never Markdown: <strong>bold</strong> not **bold**, <ul><li> not \"- item\", <h2> not \"## heading\". This field also accepts an inline image: put an <img src=\"...\"> in it, where src is a direct image URL that renders in <img src> (a page URL that merely contains an image does not work). Use finalize_image_upload to host an image yourself, or a direct URL the user supplied. Never invent an image URL — omit the image instead of risking a broken one.",
-                "maxLength": 5000
-              },
-              "suggestionsTemplate": {
-                "type": "string",
-                "description": "Suggestions template; same rich-text rules as summaryTemplate. Write HTML, never Markdown: <strong>bold</strong> not **bold**, <ul><li> not \"- item\", <h2> not \"## heading\".",
+                "description": "Summary template. Allows description-scope rich text (headings/lists/links/images/<span> etc.). Supports math formulas: write `<span data-type=\"math-formula\" data-latex=\"x^2+1\"></span>` with the LaTeX in data-latex and nothing inside; the server renders it. Two variables are available: write {{score}} (the overall score) and {{level}} (the matched level label); they are stored as `<art-field data-type=\"fieldVariable\" data-cid=\"score\"></art-field>`. Any other variable is rejected. Write HTML, never Markdown: <strong>bold</strong> not **bold**, <ul><li> not \"- item\", <h2> not \"## heading\". This field also accepts an inline image: put an <img src=\"...\"> in it, where src is a direct image URL that renders in <img src> (a page URL that merely contains an image does not work). Use finalize_image_upload to host an image yourself, or a direct URL the user supplied. Never invent an image URL — omit the image instead of risking a broken one.",
                 "maxLength": 5000
               },
               "levels": {
@@ -1491,7 +1482,8 @@
                     },
                     "description": {
                       "type": "string",
-                      "maxLength": 1000
+                      "maxLength": 1000,
+                      "description": "Result-page text shown when the score falls in this level. Write HTML, never Markdown: <strong>bold</strong> not **bold**, <ul><li> not \"- item\", <h2> not \"## heading\"."
                     },
                     "cta": {
                       "type": "object",
@@ -4862,7 +4854,7 @@
           },
           "title": {
             "type": "string",
-            "description": "Translated form title",
+            "description": "Translated form title. Plain text.",
             "maxLength": 200
           },
           "description": {
@@ -4989,10 +4981,6 @@
                     "type": "string",
                     "description": "Translated summary template (keep the placeholders intact). Write HTML, never Markdown: <strong>bold</strong> not **bold**, <ul><li> not \"- item\", <h2> not \"## heading\"."
                   },
-                  "suggestionsTemplate": {
-                    "type": "string",
-                    "description": "Translated suggestions template (keep the placeholders intact). Write HTML, never Markdown: <strong>bold</strong> not **bold**, <ul><li> not \"- item\", <h2> not \"## heading\"."
-                  },
                   "levels": {
                     "type": "array",
                     "items": {
@@ -5008,7 +4996,7 @@
                         },
                         "description": {
                           "type": "string",
-                          "description": "Translated level description."
+                          "description": "Translated level description. Write HTML, never Markdown: <strong>bold</strong> not **bold**, <ul><li> not \"- item\", <h2> not \"## heading\"."
                         },
                         "cta": {
                           "type": "object",
@@ -5074,7 +5062,7 @@
                               },
                               "description": {
                                 "type": "string",
-                                "description": "Translated level description."
+                                "description": "Translated level description. Write HTML, never Markdown: <strong>bold</strong> not **bold**, <ul><li> not \"- item\", <h2> not \"## heading\"."
                               },
                               "cta": {
                                 "type": "object",
