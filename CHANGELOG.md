@@ -5,7 +5,7 @@ version the bridge reports during a tokenless handshake comes from `bin/introspe
 which mirrors what `https://payload.rooquiz.com/api/mcp` answers `initialize` with and moves
 on its own schedule — see `scripts/snapshot-tools.mjs`.
 
-## Unreleased
+## 1.5.0 — 2026-11-04
 
 ### Removed
 
