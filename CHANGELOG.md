@@ -9,7 +9,10 @@ on its own schedule — see `scripts/snapshot-tools.mjs`.
 
 ### Changed
 
-- **Snapshot regenerated against rooquiz-payload `main` (`1082ccf2`).** Same 44 tools:
+- **Snapshot regenerated against rooquiz-payload `main` (`880db048`).** Same 44 tools:
+  - `tracking` (ad pixels), added in 1.4.1, is gone again from `update_form_settings` and
+    `get_form_share_info`. Pixels are set once per team in the dashboard. `hiddenFields`
+    stays.
   - `suggestionsTemplate` is gone from `report.overallAnalysis` in `create_form`,
     `update_form` and `update_form_translation`. Nothing rendered it, so passing it now
     fails and points to `summaryTemplate`.
