@@ -249,16 +249,13 @@ one of the 15 slugs in `https://lobehub.com/sitemap/mcp-category.xml`.
 Claude Connectors and the ChatGPT Apps Directory share this material. Any missing item means
 rejection. Each line below was re-verified on 2026-08-28.
 
-- [x] **Tool annotations** — all 44 tools carry annotations (48 when this was verified; the four
-  built-in scheduler tools were removed in 1.3.0)
-  (`rooquiz-payload/src/integrations/mcp/annotations.ts`). Every `delete_*` tool is
-  `destructiveHint: true`. Note the deviation from what this list used to say: `update_*` is
-  **not** blanket-destructive. The file draws the line at "deletes or irreversibly overwrites
-  the user's content", so a pure config replacement stays `WRITE` and only `update_examinee`
-  is destructive. That reading matches the spec better than a name prefix would.
-  ⚠️ One worth revisiting: `update_form_translation` is `WRITE`, but replacing
-  `report.outcomes` wipes the other translations in that field — which is exactly an
-  irreversible overwrite by the file's own rule.
+- [x] **Tool annotations** — all 42 tools carry annotations (48 when this was verified; the four
+  built-in scheduler tools were removed in 1.3.0, and `update_tenant_slug` and
+  `update_examinee` after 1.4.1) (`rooquiz-payload/src/integrations/mcp/annotations.ts`). The
+  file marks `destructiveHint: true` on any tool with a branch that deletes or overwrites
+  content or settings, not by name prefix. As of payload `cf05cab2` that is every `delete_*` tool plus
+  `update_form`, `update_question`, `set_dimension_analysis`, `update_form_translation`,
+  `update_form_settings`, `invite_member`, `assign_leads` and `set_lead_tags`.
 - [x] **Public privacy policy page** — https://rooquiz.com/privacy. Section 4 carries an
   "AI Assistants and MCP Clients" clause: what is sent (quiz content, responses, leads,
   bookings), that it lands with the client's provider under their policy, that respondent

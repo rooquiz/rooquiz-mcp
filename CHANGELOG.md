@@ -7,9 +7,18 @@ on its own schedule — see `scripts/snapshot-tools.mjs`.
 
 ## Unreleased
 
+### Removed
+
+- **`update_tenant_slug` and `update_examinee`, leaving 42 hosted tools.** Renaming the team
+  address moves every public quiz link, and editing a respondent rewrites personal data, so
+  both now live in the dashboard only. Respondents can still be read with `list_examinees`
+  and `get_examinee`.
+- **`gaTrackingId` in `update_form_settings` and `get_form_share_info`.** The Google
+  Analytics id is set in the dashboard too.
+
 ### Changed
 
-- **Snapshot regenerated against rooquiz-payload `main` (`880db048`).** Same 44 tools:
+- **Snapshot regenerated against rooquiz-payload `main` (`cf05cab2`):**
   - `tracking` (ad pixels), added in 1.4.1, is gone again from `update_form_settings` and
     `get_form_share_info`. Pixels are set once per team in the dashboard. `hiddenFields`
     stays.

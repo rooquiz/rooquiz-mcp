@@ -3759,7 +3759,7 @@
     },
     {
       "name": "list_examinees",
-      "description": "List the examinees — also called respondents, the people who answer the quizzes — of the current team, newest first. Sensitive auth fields (password, verification code, reset token, etc.) are never returned. The examineeId business ID is returned unmasked and is what get_examinee / update_examinee take. Use get_examinee for one examinee's full detail including customData.",
+      "description": "List the examinees — also called respondents, the people who answer the quizzes — of the current team, newest first. Sensitive auth fields (password, verification code, reset token, etc.) are never returned. The examineeId business ID is returned unmasked and is what get_examinee takes. Use get_examinee for one examinee's full detail including customData.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -3796,60 +3796,6 @@
           "examineeId": {
             "type": "string",
             "description": "The examinee business ID (e.g. AB1234567890), as shown in list_examinees"
-          }
-        },
-        "required": [
-          "examineeId"
-        ],
-        "additionalProperties": false
-      }
-    },
-    {
-      "name": "update_examinee",
-      "description": "Update an examinee (a.k.a. respondent) in the current team, located by its examineeId (the business ID from list_examinees). Editable: name / status (active|disabled) / customData (validated against the team's examinee field definitions: required / unique / type / regex). email, tenant and examineeId cannot be changed. customData REPLACES the whole object and masked values are rejected: never re-send customData you just read, or you will wipe or corrupt phone fields — only write values the user gave you.",
-      "inputSchema": {
-        "type": "object",
-        "properties": {
-          "examineeId": {
-            "type": "string",
-            "description": "The examinee business ID (e.g. AB1234567890) to update"
-          },
-          "name": {
-            "type": "string",
-            "description": "New examinee name",
-            "minLength": 1,
-            "maxLength": 100
-          },
-          "status": {
-            "type": "string",
-            "enum": [
-              "active",
-              "disabled"
-            ],
-            "description": "Enable (active) or disable the examinee"
-          },
-          "customData": {
-            "type": "object",
-            "additionalProperties": {
-              "anyOf": [
-                {
-                  "type": "string",
-                  "description": "text, phone and single-select fields. A phone value must be E.164, e.g. \"+8613800138000\"; a select value must be one of that field's options."
-                },
-                {
-                  "type": "number",
-                  "description": "number fields."
-                },
-                {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  },
-                  "description": "multi-select fields: the chosen option values."
-                }
-              ]
-            },
-            "description": "Custom field values as a code→value map, validated against the team's examineeFields definitions (required / unique / type / regex). The keys are that team's own field codes — get_examinee shows which codes exist, but only send values the user gave you: this replaces the whole customData object, and re-sending a value you read back (phone fields come back masked) wipes or corrupts it."
           }
         },
         "required": [
@@ -4000,24 +3946,6 @@
         },
         "required": [
           "tenantId"
-        ],
-        "additionalProperties": false
-      }
-    },
-    {
-      "name": "update_tenant_slug",
-      "description": "Change the team address of the current team — the first path segment of every quiz link on the platform domain (quizster.app/<team-address>/<quiz-path>). Owner / admin only. Lowercase letters, digits, hyphens and underscores, 4-32 chars, must start and end with a letter or digit, unique across the whole platform, and cannot be cleared. Changing it moves EVERY public quiz link of the team at once and the old address stops resolving (cached entries may linger briefly), so treat this as a rare, deliberate rename — not routine tuning; token addresses (/a/<publicToken>) keep working. Read the current value with get_active_tenant.",
-      "inputSchema": {
-        "type": "object",
-        "properties": {
-          "slug": {
-            "type": "string",
-            "maxLength": 32,
-            "description": "The new team address"
-          }
-        },
-        "required": [
-          "slug"
         ],
         "additionalProperties": false
       }
@@ -4308,7 +4236,7 @@
     },
     {
       "name": "update_form_settings",
-      "description": "Change how a form of the current team is delivered, as opposed to what it says (use update_form for title / questions / report / theme). Editable: submissionAccess (who may answer and whether seeing the report needs a login — this is the lead-capture gate), reportGateRequireCode (whether that login gate collects an emailed verification code, trading completion rate against lead quality), timeLimit, sharing (the result-page share button and personalised share card, which is what drives organic spread), answerSheet, crowdCompare (show respondents what share of people picked the same option — off by default, not for knowledge quizzes), instantFeedback (knowledge quizzes only, on by default for newly created ones except level tests: respondents submit each page and see right / wrong, the correct answer and the explanation before moving on), hideScores (hide every score respondents see — report, question points, instant feedback and answer review — while keeping levels and right / wrong), booking (the result-page block that opens the team's Cal.com scheduling link; bookings sync back read-only), feedback (a one-question feedback block on the result page), allowPdfDownload (respondents can download their full report as a PDF — Pro), gaTrackingId, hiddenFields (URL parameters such as partner or campaign_id captured with each response for attribution), sharedWithAll (whether every team member can see this form), searchIndexable (whether search engines may list the quiz), and slug (the custom path that gives the public link a memorable, SEO-friendly address). Only the keys you pass are changed. Read the current values with get_form_share_info.",
+      "description": "Change how a form of the current team is delivered, as opposed to what it says (use update_form for title / questions / report / theme). Editable: submissionAccess (who may answer and whether seeing the report needs a login — this is the lead-capture gate), reportGateRequireCode (whether that login gate collects an emailed verification code, trading completion rate against lead quality), timeLimit, sharing (the result-page share button and personalised share card, which is what drives organic spread), answerSheet, crowdCompare (show respondents what share of people picked the same option — off by default, not for knowledge quizzes), instantFeedback (knowledge quizzes only, on by default for newly created ones except level tests: respondents submit each page and see right / wrong, the correct answer and the explanation before moving on), hideScores (hide every score respondents see — report, question points, instant feedback and answer review — while keeping levels and right / wrong), booking (the result-page block that opens the team's Cal.com scheduling link; bookings sync back read-only), feedback (a one-question feedback block on the result page), allowPdfDownload (respondents can download their full report as a PDF — Pro), hiddenFields (URL parameters such as partner or campaign_id captured with each response for attribution), sharedWithAll (whether every team member can see this form), searchIndexable (whether search engines may list the quiz), and slug (the custom path that gives the public link a memorable, SEO-friendly address). Only the keys you pass are changed. Read the current values with get_form_share_info.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -4520,10 +4448,6 @@
           "allowPdfDownload": {
             "type": "boolean",
             "description": "Let respondents download their full report as a PDF. Pro only (switching it on is rejected on the Free plan). Takes effect only on gated quizzes (submissionAccess login_to_view_report) because the download is tied to the signed-in respondent."
-          },
-          "gaTrackingId": {
-            "type": "string",
-            "description": "Google Analytics measurement id (G-XXXXXX) or Universal Analytics id (UA-XXXX-Y). Pass an empty string to clear."
           },
           "hiddenFields": {
             "anyOf": [
