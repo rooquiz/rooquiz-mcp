@@ -18,8 +18,9 @@ on its own schedule — see `scripts/snapshot-tools.mjs`.
 
 ### Changed
 
-- **Snapshot regenerated against rooquiz-payload `main` (`2553f809`):**
-  - `create_form` defaults `language` to `en_US`, not `zh_CN`.
+- **Snapshot regenerated against rooquiz-payload `main` (`fb58580f`):**
+  - `create_form` defaults `language` to `en_US`, not `zh_CN`. Forms and templates created
+    anywhere else without a language default to English too.
   - These change tool behavior, not the snapshot:
     - `delete_question` refuses a question that an overall or dimension formula still
       references, and says which formula blocks it.
