@@ -118,7 +118,7 @@ pages, and analyze funnel conversion from any MCP client.
 - **Leads** — list, tag, assign, and comment on leads captured from quiz results pages
 - **Respondents & records** — respondents, submissions, stats, and funnel analytics
 - **Bookings** — list the calls respondents booked through Cal.com from quiz results pages
-- **Team** — switch active team, invite members, manage question banks and categories
+- **Team** — switch active team, invite members, manage categories
 
 ### Install
 ```json

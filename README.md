@@ -90,7 +90,7 @@ so address a respondent by id rather than pasting a masked value back in.
 - **Leads** — list, tag, assign, and comment on leads captured from quiz results pages
 - **Respondents & records** — look up respondents, submissions, stats, and funnel analytics
 - **Bookings** — list the calls respondents booked through Cal.com from quiz results pages
-- **Team** — switch active team, invite members, manage question banks and categories
+- **Team** — switch active team, invite members, manage categories
 
 All tools act within the team your session is bound to.
 
