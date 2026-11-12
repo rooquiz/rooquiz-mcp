@@ -5,6 +5,35 @@ version the bridge reports during a tokenless handshake comes from `bin/introspe
 which mirrors what `https://payload.rooquiz.com/api/mcp` answers `initialize` with and moves
 on its own schedule — see `scripts/snapshot-tools.mjs`.
 
+## 1.5.1 — 2026-11-12
+
+### Removed
+
+- **The Cascade, DateField and TimeField question types.** They are retired in every scene on
+  the hosted server, and stored questions of those types were deleted. `add_question`,
+  `insert_question`, `create_form` (`questions[]`) and `update_question` lose
+  `choices[].children` and `precision`, and passing either type fails with the list of
+  supported types.
+- **The formula date functions** `age`, `day`, `daysDiff`, `hour`, `month`, `now`, `year` and
+  `yearsDiff`. A formula that calls one is rejected; stored formulas had those calls rewritten
+  to `0`.
+- `report.levels[].color` and `report.outcomes[].color` in `create_form` / `update_form`,
+  `sharedWithAll` in `update_form_settings`, and `status` in `list_examinees`.
+
+### Added
+
+- `rateStyle` (`star` / `number`) on Rate questions in `add_question`, `insert_question`,
+  `create_form` and `update_question`.
+- `report.scoreStyle`, `report.levelOrder`, and a per-level / per-outcome `redirectUrl` in
+  `create_form` and `update_form`.
+- `defaultCta` and `resultRedirect` in `update_form_settings`, and `report.cta.text` in
+  `update_form_translation`.
+
+### Changed
+
+- Snapshot regenerated against rooquiz-payload `main` (`c0b954f3`), and the vendored preview
+  skills against rooquiz-skills `a5d8548`.
+
 ## 1.5.0 — 2026-11-04
 
 ### Removed

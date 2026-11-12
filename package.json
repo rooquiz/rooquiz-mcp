@@ -1,6 +1,6 @@
 {
   "name": "rooquiz-mcp",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "description": "stdio bridge for the hosted RooQuiz MCP server (quizzes, leads, respondents, bookings).",
   "license": "MIT",
   "type": "module",
