@@ -17,7 +17,7 @@
     {
       "name": "create_form",
       "title": "Create form",
-      "description": "Create a form in the team this token is bound to. Pass the questions array and report configuration in one call instead of following up with per-question calls. In the outcome_quiz scene report.outcomes is REQUIRED at create time (TrueFalse votes via trueOutcomes/falseOutcomes). In the ai_quiz scene nothing is scored: set custom question codes and pass report.aiReport.instructions referencing them as {{code}} in this same call. For a scored_quiz with dimensions, define report.dimensionAnalysis.dimensions with codes and formulas over question codes in this same call; a question may override its score for one dimension via choices[i].dimensionScores (TrueFalse: trueDimensionScores/falseDimensionScores). The returned structuredContent.fields carries each question code — read those first if you need to reference them: a scored_quiz totals its question scores by default, and only needs report.formula (e.g. {{q_a}} * 2 + {{q_b}}) for a custom total; dimensions go in report.dimensionAnalysis via update_form / set_dimension_analysis. Creates the primary language only; add other languages with create_form_translation. Limit: a quiz holds at most 50 questions on every plan (page breaks, statements and carousels do not count; a random-question slot counts as its draw count). An ai_quiz holds at most 20. Not idempotent: if the call times out it may still have succeeded, so retrying blindly can create a duplicate — check first, then retry only if it is really missing.",
+      "description": "Create a form in the team this token is bound to. Pass the questions array and report configuration in one call instead of following up with per-question calls. In the outcome_quiz scene report.outcomes is REQUIRED at create time (TrueFalse votes via trueOutcomes/falseOutcomes). In the ai_quiz scene nothing is scored: set custom question codes and pass report.aiReport.instructions referencing them as {{code}} in this same call. For a scored_quiz with dimensions, define report.dimensionAnalysis.dimensions with codes and formulas over question codes in this same call; a question may override its score for one dimension via choices[i].dimensionScores (TrueFalse: trueDimensionScores/falseDimensionScores). The returned structuredContent.fields carries each question code — read those first if you need to reference them: a scored_quiz totals its question scores by default, and only needs report.formula (e.g. {{q_a}} * 2 + {{q_b}}) for a custom total; dimensions go in report.dimensionAnalysis via update_form / set_dimension_analysis. Creates the primary language only; add other languages with create_form_translation. Limit: a quiz holds at most 50 questions on every plan (page breaks, statements and carousels do not count). An ai_quiz holds at most 20. Not idempotent: if the call times out it may still have succeeded, so retrying blindly can create a duplicate — check first, then retry only if it is really missing.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -60,10 +60,10 @@
           },
           "questions": {
             "type": "array",
-            "description": "Optional. A list of questions/page breaks to create at once, written into form.fields in order. Question types: SingleCheck/MultiCheck/TrueFalse; FillBlank (free text — scored in quiz via correctAnswer, an unscored data-collection field in scored_quiz); DropDown (single or multiple via `multiple`, use it instead of SingleCheck/MultiCheck when there are more than 20 choices); Cascade (hierarchical choices via children, scored_quiz / ai_quiz); Ordering (quiz only, correctAnswer = all choices in the correct order); DateField/TimeField as unscored data-collection fields (scored_quiz / ai_quiz); NumberField (quiz: optional numeric correctAnswer + score; scored_quiz: the submitted number feeds report formulas); Rate (scored_quiz / ai_quiz; in scored_quiz the 1..steps rating value is the question score unless per-star scores are set in the web app); Attachment (ai_quiz only: a file upload with `kind` image / audio / video / document that the AI reads). Insert a page break with { type: \"Breaker\" }, which the AI can interleave between questions to paginate. Display blocks collect no answer: { type: \"Statement\", content } is a rich-text passage (intro / section lead-in / disclaimer) and { type: \"Swiper\", items } an image carousel. At most 100 items.",
+            "description": "Optional. A list of questions/page breaks to create at once, written into form.fields in order. Question types: SingleCheck/MultiCheck/TrueFalse; FillBlank (free text — scored in quiz via correctAnswer, an unscored data-collection field in scored_quiz); DropDown (single or multiple via `multiple`, use it instead of SingleCheck/MultiCheck when there are more than 20 choices); Ordering (quiz only, correctAnswer = all choices in the correct order); NumberField (quiz: optional numeric correctAnswer + score; scored_quiz: the submitted number feeds report formulas); Rate (scored_quiz / ai_quiz; in scored_quiz the 1..steps rating value is the question score unless per-star scores are set in the web app); Attachment (ai_quiz only: a file upload with `kind` image / audio / video / document that the AI reads). Insert a page break with { type: \"Breaker\" }, which the AI can interleave between questions to paginate. Display blocks collect no answer: { type: \"Statement\", content } is a rich-text passage (intro / section lead-in / disclaimer) and { type: \"Swiper\", items } an image carousel. At most 100 items.",
             "items": {
               "type": "object",
-              "description": "One question, a page break, or a display block (Statement / Swiper). FIELD APPLICABILITY — `type` is the only field the schema always requires; `type` (plus the form scene) decides which of the remaining fields apply, and one that does not apply is either rejected with an explanatory error or ignored, so never pass it. Breaker (page break) takes nothing but `type`. Display blocks collect no answer, are never scored and are allowed in every scene: Statement takes `content` (the rich text IS the block) and Swiper takes `items` (an image carousel); both also accept an optional `name`, a label used by the web editor only, and neither takes any question field. Every question type takes `name` (required) plus the optional `code` / `description` / `explain` / `required`. Type-specific fields: SingleCheck / MultiCheck / DropDown / Ordering / Cascade need `choices` (Cascade nests via choices[i].children; DropDown also takes `multiple`; Ordering also takes `shuffle`); TrueFalse has a fixed pair of options and takes `trueLabel` / `falseLabel` instead of `choices`; DateField / TimeField take `precision`; NumberField takes `min` / `max` / `unit` / `decimalPlaces`; Rate takes `steps` / `words`; Attachment takes `kind` (required) / `maxFiles`. Scene rules for scoring: quiz — `correctAnswer` plus `score` > 0 are REQUIRED on SingleCheck / MultiCheck / DropDown / Ordering, optional on FillBlank (add `aiMatch` to have AI grade it instead of exact string match) and NumberField (omit both and the question is just a data-collection field), and rejected on DateField / TimeField; scored_quiz — score each option via choices[i].score; `correctAnswer` / `score` are rejected on NumberField and Rate (the submitted value is the score) and on FillBlank (free text is collected only, never scored); outcome — nothing is scored: `correctAnswer` / `score` / `aiMatch` are all rejected, every choice needs `outcomes` (TrueFalse votes via `trueOutcomes` / `falseOutcomes`); ai_quiz — nothing is scored: `correctAnswer` / `score` / `aiMatch` / choices[i].score are all rejected; an AI reads the answers and writes the report from report.aiReport. Type availability per scene: Ordering is knowledge_quiz-only; FillBlank works in knowledge_quiz (optionally scored) and in scored_quiz (data-collection only — its answer never feeds a score or a report formula); Cascade, Rate, DateField and TimeField work in scored_quiz and ai_quiz only; the outcome_quiz scene accepts only SingleCheck / MultiCheck / DropDown / TrueFalse / Breaker; the ai_quiz scene accepts every type except Ordering, plus Attachment (ai_quiz-only via MCP, at most 2 per form).",
+              "description": "One question, a page break, or a display block (Statement / Swiper). FIELD APPLICABILITY — `type` is the only field the schema always requires; `type` (plus the form scene) decides which of the remaining fields apply, and one that does not apply is either rejected with an explanatory error or ignored, so never pass it. Breaker (page break) takes nothing but `type`. Display blocks collect no answer, are never scored and are allowed in every scene: Statement takes `content` (the rich text IS the block) and Swiper takes `items` (an image carousel); both also accept an optional `name`, a label used by the web editor only, and neither takes any question field. Every question type takes `name` (required) plus the optional `code` / `description` / `explain` / `required`. Type-specific fields: SingleCheck / MultiCheck / DropDown / Ordering need `choices` (DropDown also takes `multiple`; Ordering also takes `shuffle`); TrueFalse has a fixed pair of options and takes `trueLabel` / `falseLabel` instead of `choices`; NumberField takes `min` / `max` / `unit` / `decimalPlaces`; Rate takes `steps` / `words` / `rateStyle`; Attachment takes `kind` (required) / `maxFiles`. Scene rules for scoring: quiz — `correctAnswer` plus `score` > 0 are REQUIRED on SingleCheck / MultiCheck / DropDown / Ordering, optional on FillBlank (add `aiMatch` to have AI grade it instead of exact string match) and NumberField (omit both and the question is just a data-collection field); scored_quiz — score each option via choices[i].score; `correctAnswer` / `score` are rejected on NumberField and Rate (the submitted value is the score) and on FillBlank (free text is collected only, never scored); outcome — nothing is scored: `correctAnswer` / `score` / `aiMatch` are all rejected, every choice needs `outcomes` (TrueFalse votes via `trueOutcomes` / `falseOutcomes`); ai_quiz — nothing is scored: `correctAnswer` / `score` / `aiMatch` / choices[i].score are all rejected; an AI reads the answers and writes the report from report.aiReport. Type availability per scene: Ordering is knowledge_quiz-only; FillBlank works in knowledge_quiz (optionally scored) and in scored_quiz (data-collection only — its answer never feeds a score or a report formula); Rate works in scored_quiz and ai_quiz only; the outcome_quiz scene accepts only SingleCheck / MultiCheck / DropDown / TrueFalse / Breaker; the ai_quiz scene accepts every type except Ordering, plus Attachment (ai_quiz-only via MCP, at most 2 per form).",
               "properties": {
                 "type": {
                   "type": "string",
@@ -72,12 +72,9 @@
                     "MultiCheck",
                     "TrueFalse",
                     "FillBlank",
-                    "DateField",
-                    "TimeField",
                     "NumberField",
                     "Rate",
                     "DropDown",
-                    "Cascade",
                     "Ordering",
                     "Attachment",
                     "Breaker",
@@ -111,18 +108,6 @@
                   "type": "boolean",
                   "description": "Whether the question is required, default false"
                 },
-                "precision": {
-                  "type": "string",
-                  "enum": [
-                    "year",
-                    "month",
-                    "day",
-                    "hour",
-                    "minute",
-                    "second"
-                  ],
-                  "description": "DateField / TimeField only: picker precision. DateField accepts year | month | day | hour | minute (default day; e.g. \"month\" shows a year-month picker, \"minute\" a date + hour:minute picker). TimeField accepts only minute | second (default minute). Ignored for other question types."
-                },
                 "min": {
                   "type": "number",
                   "description": "NumberField only: minimum allowed input value (respondents cannot submit a smaller number). Rejected for other question types."
@@ -140,7 +125,7 @@
                   "type": "number",
                   "minimum": 0,
                   "maximum": 10,
-                  "description": "NumberField only: how many decimal places respondents may enter (stored as the field's numeric precision), default 0 = integers only. Rejected for other question types. Note this is different from the string `precision` of DateField / TimeField."
+                  "description": "NumberField only: how many decimal places respondents may enter (stored as the field's numeric precision), default 0 = integers only. Rejected for other question types."
                 },
                 "steps": {
                   "type": "number",
@@ -157,9 +142,17 @@
                   "maxItems": 5,
                   "description": "Rate only: optional scale labels evenly distributed under the rating control, e.g. [\"Poor\", \"Excellent\"] for the two endpoints (up to 5 labels). Rejected for other question types."
                 },
+                "rateStyle": {
+                  "type": "string",
+                  "enum": [
+                    "star",
+                    "number"
+                  ],
+                  "description": "Rate only: how the rating control looks — \"star\" (default, a row of stars) or \"number\" (a row of numbered circles 1..steps, reads more like a professional self-assessment scale). Display only: the submitted value is 1..steps either way. Rejected for other question types."
+                },
                 "choices": {
                   "type": "array",
-                  "description": "Choice-based questions only (SingleCheck / MultiCheck / DropDown / Ordering / Cascade), where it is required; ignored for every other type, including TrueFalse — its two options come from trueLabel / falseLabel. Per-type limits: SingleCheck / MultiCheck 2-100 items — for a longer list use DropDown (2-300 items) instead; Ordering 2-10 items; Cascade nests via choices[i].children (up to 3 levels, at most 100 nodes in total). IMPORTANT (knowledge_quiz scene): vary the position of the correct option(s) across questions — do NOT always place the correct answer first. Distribute correct answers roughly evenly over all positions so they are not predictable.",
+                  "description": "Choice-based questions only (SingleCheck / MultiCheck / DropDown / Ordering), where it is required; ignored for every other type, including TrueFalse — its two options come from trueLabel / falseLabel. Per-type limits: SingleCheck / MultiCheck 2-100 items — for a longer list use DropDown (2-300 items) instead; Ordering 2-10 items. IMPORTANT (knowledge_quiz scene): vary the position of the correct option(s) across questions — do NOT always place the correct answer first. Distribute correct answers roughly evenly over all positions so they are not predictable.",
                   "items": {
                     "type": "object",
                     "properties": {
@@ -176,7 +169,7 @@
                         "type": "number",
                         "minimum": 0,
                         "maximum": 100,
-                        "description": "Used only in the scored_quiz scene; the score added when this choice is selected (generates partialScoring). For Cascade every node on the submitted path adds its score. Ignored in the knowledge_quiz scene; rejected in the outcome_quiz scene."
+                        "description": "Used only in the scored_quiz scene; the score added when this choice is selected (generates partialScoring). Ignored in the knowledge_quiz scene; rejected in the outcome_quiz scene."
                       },
                       "outcomes": {
                         "type": "array",
@@ -217,146 +210,6 @@
                           "maximum": 100
                         },
                         "description": "scored_quiz scene only: the points this choice adds to each dimension when selected, as a map of dimension code → score, e.g. { \"dim_d\": 3, \"dim_i\": 1 }. Each entry overrides this choice's score for that one dimension; a dimension not listed falls back to the plain choice `score`, and an explicit 0 really counts 0. Dimension scores still come only from each dimension's required formula: inside it `{{q}}` is the sum of the selected choices' override-or-score for that dimension, and a question the formula does not reference adds nothing. Codes must exist in report.dimensionAnalysis.dimensions — give dimensions[].code and reference them in the same create_form call. `score` remains the overall score (summed by default, or fed to report.formula when set). Rejected in the knowledge_quiz / outcome_quiz scenes."
-                      },
-                      "children": {
-                        "type": "array",
-                        "minItems": 1,
-                        "maxItems": 100,
-                        "items": {
-                          "type": "object",
-                          "properties": {
-                            "label": {
-                              "type": "string",
-                              "description": "Display text of the choice"
-                            },
-                            "code": {
-                              "type": "string",
-                              "maxLength": 64,
-                              "description": "Optional stable identifier for this choice (option code). Omit to auto-generate. Same identifier rules as the question code; must be unique among the choices of this question. correctAnswer may reference a choice by its label or its code."
-                            },
-                            "score": {
-                              "type": "number",
-                              "minimum": 0,
-                              "maximum": 100,
-                              "description": "Used only in the scored_quiz scene; the score added when this choice is selected (generates partialScoring). For Cascade every node on the submitted path adds its score. Ignored in the knowledge_quiz scene; rejected in the outcome_quiz scene."
-                            },
-                            "outcomes": {
-                              "type": "array",
-                              "items": {
-                                "anyOf": [
-                                  {
-                                    "type": "string"
-                                  },
-                                  {
-                                    "type": "object",
-                                    "properties": {
-                                      "code": {
-                                        "type": "string",
-                                        "description": "Outcome code from report.outcomes"
-                                      },
-                                      "weight": {
-                                        "type": "number",
-                                        "minimum": 0,
-                                        "maximum": 100,
-                                        "description": "Votes this pick casts for the outcome; omit for 1. Decimals allowed, 0 = counts for nothing."
-                                      }
-                                    },
-                                    "required": [
-                                      "code"
-                                    ],
-                                    "additionalProperties": false
-                                  }
-                                ]
-                              },
-                              "maxItems": 50,
-                              "description": "Outcome scene only, and required there on every choice: the outcomes this choice votes for when selected (each code must exist in report.outcomes; a choice may vote for multiple outcomes). Use [] for a neutral choice that votes for nothing. Rejected in the knowledge_quiz / scored_quiz scenes. Each item is an outcome code (one vote) or { code, weight } to make this pick count more or less — e.g. { \"code\": \"lion\", \"weight\": 2 } for a question that should decide the result more than the others. The outcome with the most total votes wins."
-                            },
-                            "dimensionScores": {
-                              "type": "object",
-                              "additionalProperties": {
-                                "type": "number",
-                                "minimum": 0,
-                                "maximum": 100
-                              },
-                              "description": "scored_quiz scene only: the points this choice adds to each dimension when selected, as a map of dimension code → score, e.g. { \"dim_d\": 3, \"dim_i\": 1 }. Each entry overrides this choice's score for that one dimension; a dimension not listed falls back to the plain choice `score`, and an explicit 0 really counts 0. Dimension scores still come only from each dimension's required formula: inside it `{{q}}` is the sum of the selected choices' override-or-score for that dimension, and a question the formula does not reference adds nothing. Codes must exist in report.dimensionAnalysis.dimensions — give dimensions[].code and reference them in the same create_form call. `score` remains the overall score (summed by default, or fed to report.formula when set). Rejected in the knowledge_quiz / outcome_quiz scenes."
-                            },
-                            "children": {
-                              "type": "array",
-                              "minItems": 1,
-                              "maxItems": 100,
-                              "items": {
-                                "type": "object",
-                                "properties": {
-                                  "label": {
-                                    "type": "string",
-                                    "description": "Display text of the choice"
-                                  },
-                                  "code": {
-                                    "type": "string",
-                                    "maxLength": 64,
-                                    "description": "Optional stable identifier for this choice (option code). Omit to auto-generate. Same identifier rules as the question code; must be unique among the choices of this question. correctAnswer may reference a choice by its label or its code."
-                                  },
-                                  "score": {
-                                    "type": "number",
-                                    "minimum": 0,
-                                    "maximum": 100,
-                                    "description": "Used only in the scored_quiz scene; the score added when this choice is selected (generates partialScoring). For Cascade every node on the submitted path adds its score. Ignored in the knowledge_quiz scene; rejected in the outcome_quiz scene."
-                                  },
-                                  "outcomes": {
-                                    "type": "array",
-                                    "items": {
-                                      "anyOf": [
-                                        {
-                                          "type": "string"
-                                        },
-                                        {
-                                          "type": "object",
-                                          "properties": {
-                                            "code": {
-                                              "type": "string",
-                                              "description": "Outcome code from report.outcomes"
-                                            },
-                                            "weight": {
-                                              "type": "number",
-                                              "minimum": 0,
-                                              "maximum": 100,
-                                              "description": "Votes this pick casts for the outcome; omit for 1. Decimals allowed, 0 = counts for nothing."
-                                            }
-                                          },
-                                          "required": [
-                                            "code"
-                                          ],
-                                          "additionalProperties": false
-                                        }
-                                      ]
-                                    },
-                                    "maxItems": 50,
-                                    "description": "Outcome scene only, and required there on every choice: the outcomes this choice votes for when selected (each code must exist in report.outcomes; a choice may vote for multiple outcomes). Use [] for a neutral choice that votes for nothing. Rejected in the knowledge_quiz / scored_quiz scenes. Each item is an outcome code (one vote) or { code, weight } to make this pick count more or less — e.g. { \"code\": \"lion\", \"weight\": 2 } for a question that should decide the result more than the others. The outcome with the most total votes wins."
-                                  },
-                                  "dimensionScores": {
-                                    "type": "object",
-                                    "additionalProperties": {
-                                      "type": "number",
-                                      "minimum": 0,
-                                      "maximum": 100
-                                    },
-                                    "description": "scored_quiz scene only: the points this choice adds to each dimension when selected, as a map of dimension code → score, e.g. { \"dim_d\": 3, \"dim_i\": 1 }. Each entry overrides this choice's score for that one dimension; a dimension not listed falls back to the plain choice `score`, and an explicit 0 really counts 0. Dimension scores still come only from each dimension's required formula: inside it `{{q}}` is the sum of the selected choices' override-or-score for that dimension, and a question the formula does not reference adds nothing. Codes must exist in report.dimensionAnalysis.dimensions — give dimensions[].code and reference them in the same create_form call. `score` remains the overall score (summed by default, or fed to report.formula when set). Rejected in the knowledge_quiz / outcome_quiz scenes."
-                                  }
-                                },
-                                "required": [
-                                  "label"
-                                ],
-                                "additionalProperties": false
-                              },
-                              "description": "Cascade only: child options of this node (nesting up to 3 levels in total). Rejected for other question types."
-                            }
-                          },
-                          "required": [
-                            "label"
-                          ],
-                          "additionalProperties": false
-                        },
-                        "description": "Cascade only: child options of this node (nesting up to 3 levels in total). Rejected for other question types."
                       }
                     },
                     "required": [
@@ -537,11 +390,11 @@
                       "description": "NumberField: a finite number, matched exactly."
                     }
                   ],
-                  "description": "The \"correct answer\" of the knowledge_quiz scene; setting it makes the question scored, so pair it with a positive `score`. The shape follows the question type — see the anyOf branches; a choice is referenced by its label or its code, so reference it by code whenever the same label appears more than once (Ordering rejects an ambiguous label outright). Required on SingleCheck / MultiCheck / DropDown / Ordering in the knowledge_quiz scene, optional on FillBlank / NumberField there. NumberField answers must be typeable within min / max and decimalPlaces. Rejected for DateField / TimeField / Rate (data-collection and rating fields; configure date/time scoring in the web app), rejected for FillBlank in the scored_quiz scene (free text is collected only there), and rejected in the outcome_quiz scene (no right or wrong answers there). In the scored_quiz scene prefer choices[i].score per option; passing correctAnswer + score there only falls back to \"the matching choice gets score, others get 0\"."
+                  "description": "The \"correct answer\" of the knowledge_quiz scene; setting it makes the question scored, so pair it with a positive `score`. The shape follows the question type — see the anyOf branches; a choice is referenced by its label or its code, so reference it by code whenever the same label appears more than once (Ordering rejects an ambiguous label outright). Required on SingleCheck / MultiCheck / DropDown / Ordering in the knowledge_quiz scene, optional on FillBlank / NumberField there. NumberField answers must be typeable within min / max and decimalPlaces. Rejected for Rate (a rating field), rejected for FillBlank in the scored_quiz scene (free text is collected only there), and rejected in the outcome_quiz scene (no right or wrong answers there). In the scored_quiz scene prefer choices[i].score per option; passing correctAnswer + score there only falls back to \"the matching choice gets score, others get 0\"."
                 },
                 "score": {
                   "type": "number",
-                  "description": "Points this question is worth, default 0 (not scored). Quiz scene: awarded when the answer matches correctAnswer, and a positive value is required once correctAnswer is set. Scored Quiz scene: pairing it with correctAnswer enables the fallback mode above, but choices[i].score is more flexible. Rejected in the outcome_quiz scene, for DateField / TimeField / Rate, and — in the scored_quiz scene — for NumberField (where the submitted number itself is the score) and FillBlank (collected only, never scored).",
+                  "description": "Points this question is worth, default 0 (not scored). Quiz scene: awarded when the answer matches correctAnswer, and a positive value is required once correctAnswer is set. Scored Quiz scene: pairing it with correctAnswer enables the fallback mode above, but choices[i].score is more flexible. Rejected in the outcome_quiz scene, for Rate, and — in the scored_quiz scene — for NumberField (where the submitted number itself is the score) and FillBlank (collected only, never scored).",
                   "minimum": 0,
                   "maximum": 100,
                   "default": 0
@@ -605,7 +458,7 @@
               },
               "formula": {
                 "type": "string",
-                "description": "Optional custom total-score formula for the scored_quiz scene. Leave it out to use the default: the overall score is the sum of every scored question (choice scores, plus the star value / configured score of Rate questions; NumberField / DateField / TimeField raw values are not summed) and the full mark is the sum of each question's highest attainable score. Set it only when you need weights, dimension combinations or NumberField / date values. In update_form, omitting it keeps the current formula; pass \"\" to remove it. Question codes must be wrapped in `{{code}}` (e.g. `{{q1}} + {{q2}}` for custom question codes, or `{{__field_abc}} + {{__field_def}}` for auto-generated ones); bare codes are rejected. It may also reference dimension codes the same way (e.g. `{{dim_d}} * 2 + {{dim_i}}`): dimensions are computed first, so the overall score can be a weighted sum of dimension scores; a dimension referenced here cannot be removed later. Supported operators: + - * / ( ); every referenced code must exist in the current form (questions and dimensions). Setting dimension formulas does NOT cover this — the overall formula is separate.",
+                "description": "Optional custom total-score formula for the scored_quiz scene. Leave it out to use the default: the overall score is the sum of every scored question (choice scores, plus the star value / configured score of Rate questions; NumberField raw values are not summed) and the full mark is the sum of each question's highest attainable score. Set it only when you need weights, dimension combinations or NumberField values. In update_form, omitting it keeps the current formula; pass \"\" to remove it. Question codes must be wrapped in `{{code}}` (e.g. `{{q1}} + {{q2}}` for custom question codes, or `{{__field_abc}} + {{__field_def}}` for auto-generated ones); bare codes are rejected. It may also reference dimension codes the same way (e.g. `{{dim_d}} * 2 + {{dim_i}}`): dimensions are computed first, so the overall score can be a weighted sum of dimension scores; a dimension referenced here cannot be removed later. Supported operators: + - * / ( ); every referenced code must exist in the current form (questions and dimensions). Setting dimension formulas does NOT cover this — the overall formula is separate.",
                 "maxLength": 5000
               },
               "summaryTemplate": {
@@ -628,10 +481,6 @@
                     "upTo": {
                       "type": "number",
                       "description": "Upper bound (exclusive); omit for the last level"
-                    },
-                    "color": {
-                      "type": "string",
-                      "description": "Level color, e.g. #4caf50"
                     },
                     "description": {
                       "type": "string",
@@ -663,6 +512,18 @@
                         "url"
                       ],
                       "additionalProperties": false
+                    },
+                    "redirectUrl": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "maxLength": 2048
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "http(s) link respondents are sent to right after submitting when the score falls in this level, instead of seeing the result page. Only takes effect while redirects are switched on (update_form_settings resultRedirect, Pro). In update_form, omit it to keep the link of the current level with the same label; pass \"\" or null to remove it. Overall levels only."
                     }
                   },
                   "required": [
@@ -775,11 +636,6 @@
                       "maxLength": 100,
                       "description": "Outcome display name shown on the result page, e.g. \"Lion — The Decisive Leader\". Plain text."
                     },
-                    "color": {
-                      "type": "string",
-                      "maxLength": 30,
-                      "description": "Theme color of this outcome, e.g. \"#4caf50\". Optional."
-                    },
                     "description": {
                       "type": "string",
                       "maxLength": 5000,
@@ -810,6 +666,18 @@
                         "url"
                       ],
                       "additionalProperties": false
+                    },
+                    "redirectUrl": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "maxLength": 2048
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "outcome_quiz only: http(s) link respondents are sent to right after submitting when this outcome wins, instead of seeing the result page. Only takes effect while redirects are switched on (update_form_settings resultRedirect, Pro). In update_form, omit it to keep the outcome's current link; pass \"\" or null to remove it. Rejected on ai_quiz result tags."
                     }
                   },
                   "required": [
@@ -878,7 +746,39 @@
                 },
                 "maxItems": 3,
                 "uniqueItems": true,
-                "description": "Any scene: the order of the movable result-page sections — dimension (dimension breakdown / radar), booking (the Cal.com booking block), feedback (the feedback block). The overall score / outcome always stays on top and the answer review / share area at the bottom. Keys you leave out keep their default relative order after the ones you list; [] restores the default (dimension, booking, feedback). Lead with booking when the quiz exists to book calls."
+                "description": "Any scene: the order of the movable result-page sections — dimension (dimension breakdown / radar), booking (the Cal.com booking block), feedback (the feedback block). The overall score / outcome always stays on top and the answer review / share area at the bottom. Keys you leave out keep their default relative order after the ones you list; [] restores the default (booking, dimension, feedback)."
+              },
+              "levelOrder": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "enum": [
+                      "asc",
+                      "desc"
+                    ]
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "knowledge_quiz / scored_quiz only: display order of the score levels — asc (default, lowest level first) or desc (highest level first). Applies to the overall levels and every dimension's levels, in the editor and on the result page's level scale. Display only: levels are still stored and matched by minScore ascending, so pass report.levels in ascending order either way. null restores asc."
+              },
+              "scoreStyle": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "enum": [
+                      "scale",
+                      "ring",
+                      "gauge",
+                      "steps"
+                    ]
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "knowledge_quiz / scored_quiz only: how the result page's overall score card shows the result — scale (a level bar with a marker), ring (a progress ring with the score inside), gauge (a semicircle gauge split by level with a needle) or steps (one bar per level, taller for higher levels). Display only. null (the default) follows the personalized theme: the applied library design's style, or scale when none is applied. Styles that need data the quiz lacks (e.g. steps without levels) fall back to scale."
               }
             },
             "additionalProperties": false
@@ -1443,7 +1343,7 @@
           },
           "report": {
             "type": "object",
-            "description": "Report configuration, merged by sub-key into form.report: passing overallAnalysis fields (title/formula/levels/summaryTemplate) replaces overallAnalysis, except that an omitted formula keeps the current one (pass formula: \"\" to remove it and fall back to the default sum); passing dimensionAnalysis replaces the dimension list (scored_quiz only; codes are kept by code or by name, omitted title / radar settings are preserved; an empty dimensions array clears it; a dimension still referenced by a question's dimensionScores or by report.formula cannot be removed); in the outcome_quiz scene passing outcomes replaces the outcome list (matched by code, existing images kept; cannot be emptied, and removing an outcome still referenced by question votes is rejected); passing sectionOrder replaces the result-page section order ([] restores the default); unspecified parts are kept. Common usage: either set custom question codes in create_form and pass report.formula / dimensionAnalysis in the same call, or call create_form first to get the auto-generated field codes, then update_form to fill in report.formula and/or dimensionAnalysis (which reference question codes).",
+            "description": "Report configuration, merged by sub-key into form.report: passing overallAnalysis fields (title/formula/levels/summaryTemplate) replaces overallAnalysis, except that an omitted formula keeps the current one (pass formula: \"\" to remove it and fall back to the default sum); passing dimensionAnalysis replaces the dimension list (scored_quiz only; codes are kept by code or by name, omitted title / radar settings are preserved; an empty dimensions array clears it; a dimension still referenced by a question's dimensionScores or by report.formula cannot be removed); in the outcome_quiz scene passing outcomes replaces the outcome list (matched by code, existing images kept; cannot be emptied, and removing an outcome still referenced by question votes is rejected); passing sectionOrder replaces the result-page section order ([] restores the default); passing levelOrder sets the level display order (asc / desc, knowledge_quiz / scored_quiz only); passing scoreStyle sets the score card style (scale / ring / gauge / steps, null follows the theme; knowledge_quiz / scored_quiz only); unspecified parts are kept. Common usage: either set custom question codes in create_form and pass report.formula / dimensionAnalysis in the same call, or call create_form first to get the auto-generated field codes, then update_form to fill in report.formula and/or dimensionAnalysis (which reference question codes).",
             "properties": {
               "title": {
                 "type": "string",
@@ -1452,7 +1352,7 @@
               },
               "formula": {
                 "type": "string",
-                "description": "Optional custom total-score formula for the scored_quiz scene. Leave it out to use the default: the overall score is the sum of every scored question (choice scores, plus the star value / configured score of Rate questions; NumberField / DateField / TimeField raw values are not summed) and the full mark is the sum of each question's highest attainable score. Set it only when you need weights, dimension combinations or NumberField / date values. In update_form, omitting it keeps the current formula; pass \"\" to remove it. Question codes must be wrapped in `{{code}}` (e.g. `{{q1}} + {{q2}}` for custom question codes, or `{{__field_abc}} + {{__field_def}}` for auto-generated ones); bare codes are rejected. It may also reference dimension codes the same way (e.g. `{{dim_d}} * 2 + {{dim_i}}`): dimensions are computed first, so the overall score can be a weighted sum of dimension scores; a dimension referenced here cannot be removed later. Supported operators: + - * / ( ); every referenced code must exist in the current form (questions and dimensions). Setting dimension formulas does NOT cover this — the overall formula is separate.",
+                "description": "Optional custom total-score formula for the scored_quiz scene. Leave it out to use the default: the overall score is the sum of every scored question (choice scores, plus the star value / configured score of Rate questions; NumberField raw values are not summed) and the full mark is the sum of each question's highest attainable score. Set it only when you need weights, dimension combinations or NumberField values. In update_form, omitting it keeps the current formula; pass \"\" to remove it. Question codes must be wrapped in `{{code}}` (e.g. `{{q1}} + {{q2}}` for custom question codes, or `{{__field_abc}} + {{__field_def}}` for auto-generated ones); bare codes are rejected. It may also reference dimension codes the same way (e.g. `{{dim_d}} * 2 + {{dim_i}}`): dimensions are computed first, so the overall score can be a weighted sum of dimension scores; a dimension referenced here cannot be removed later. Supported operators: + - * / ( ); every referenced code must exist in the current form (questions and dimensions). Setting dimension formulas does NOT cover this — the overall formula is separate.",
                 "maxLength": 5000
               },
               "summaryTemplate": {
@@ -1475,10 +1375,6 @@
                     "upTo": {
                       "type": "number",
                       "description": "Upper bound (exclusive); omit for the last level"
-                    },
-                    "color": {
-                      "type": "string",
-                      "description": "Level color, e.g. #4caf50"
                     },
                     "description": {
                       "type": "string",
@@ -1510,6 +1406,18 @@
                         "url"
                       ],
                       "additionalProperties": false
+                    },
+                    "redirectUrl": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "maxLength": 2048
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "http(s) link respondents are sent to right after submitting when the score falls in this level, instead of seeing the result page. Only takes effect while redirects are switched on (update_form_settings resultRedirect, Pro). In update_form, omit it to keep the link of the current level with the same label; pass \"\" or null to remove it. Overall levels only."
                     }
                   },
                   "required": [
@@ -1622,11 +1530,6 @@
                       "maxLength": 100,
                       "description": "Outcome display name shown on the result page, e.g. \"Lion — The Decisive Leader\". Plain text."
                     },
-                    "color": {
-                      "type": "string",
-                      "maxLength": 30,
-                      "description": "Theme color of this outcome, e.g. \"#4caf50\". Optional."
-                    },
                     "description": {
                       "type": "string",
                       "maxLength": 5000,
@@ -1657,6 +1560,18 @@
                         "url"
                       ],
                       "additionalProperties": false
+                    },
+                    "redirectUrl": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "maxLength": 2048
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "outcome_quiz only: http(s) link respondents are sent to right after submitting when this outcome wins, instead of seeing the result page. Only takes effect while redirects are switched on (update_form_settings resultRedirect, Pro). In update_form, omit it to keep the outcome's current link; pass \"\" or null to remove it. Rejected on ai_quiz result tags."
                     }
                   },
                   "required": [
@@ -1725,7 +1640,39 @@
                 },
                 "maxItems": 3,
                 "uniqueItems": true,
-                "description": "Any scene: the order of the movable result-page sections — dimension (dimension breakdown / radar), booking (the Cal.com booking block), feedback (the feedback block). The overall score / outcome always stays on top and the answer review / share area at the bottom. Keys you leave out keep their default relative order after the ones you list; [] restores the default (dimension, booking, feedback). Lead with booking when the quiz exists to book calls."
+                "description": "Any scene: the order of the movable result-page sections — dimension (dimension breakdown / radar), booking (the Cal.com booking block), feedback (the feedback block). The overall score / outcome always stays on top and the answer review / share area at the bottom. Keys you leave out keep their default relative order after the ones you list; [] restores the default (booking, dimension, feedback)."
+              },
+              "levelOrder": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "enum": [
+                      "asc",
+                      "desc"
+                    ]
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "knowledge_quiz / scored_quiz only: display order of the score levels — asc (default, lowest level first) or desc (highest level first). Applies to the overall levels and every dimension's levels, in the editor and on the result page's level scale. Display only: levels are still stored and matched by minScore ascending, so pass report.levels in ascending order either way. null restores asc."
+              },
+              "scoreStyle": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "enum": [
+                      "scale",
+                      "ring",
+                      "gauge",
+                      "steps"
+                    ]
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "knowledge_quiz / scored_quiz only: how the result page's overall score card shows the result — scale (a level bar with a marker), ring (a progress ring with the score inside), gauge (a semicircle gauge split by level with a needle) or steps (one bar per level, taller for higher levels). Display only. null (the default) follows the personalized theme: the applied library design's style, or scale when none is applied. Styles that need data the quiz lacks (e.g. steps without levels) fall back to scale."
               }
             },
             "additionalProperties": false
@@ -1878,7 +1825,7 @@
     {
       "name": "delete_form",
       "title": "Delete form",
-      "description": "Move a form into the trash (soft delete) in the current team. The form is hidden from list_forms but kept recoverable for 5 days (then auto-purged); use restore_form to bring it back. Only the form owner or the team owner / admin can delete. Submission records are kept until permanent purge.",
+      "description": "Move a form into the trash (soft delete) in the current team. The form is hidden from list_forms but kept recoverable for 5 days (then auto-purged); use restore_form to bring it back. Any member of the team can do this. Submission records are kept until permanent purge.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -1933,7 +1880,7 @@
     {
       "name": "restore_form",
       "title": "Restore form",
-      "description": "Restore a form from the trash in the current team (undo delete_form). Only the form owner or the team owner / admin can restore; errors if the form is not in the trash.",
+      "description": "Restore a form from the trash in the current team (undo delete_form). Any member of the team can restore; errors if the form is not in the trash.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -2284,7 +2231,7 @@
     {
       "name": "create_form_from_template",
       "title": "Create form from template",
-      "description": "Create a new form in the current team from a public template (find template ids with list_templates). Clones the template structure, scoring/report configuration, visual settings, and all language versions in one call; pass title to override the template title. After creation you can adjust it with update_form / update_question etc. This is the fastest way to build a quiz when a suitable template exists — prefer it over building from scratch with create_form. Not idempotent: if the call times out it may still have succeeded, so retrying blindly can create a duplicate — check first, then retry only if it is really missing.",
+      "description": "Create a new form in the current team from a public template (find template ids with list_templates). Clones the template structure, scoring/report configuration, visual settings, and all language versions in one call. Links set by the template author are not copied: redirect-after-submit is dropped and result-page CTA buttons keep their text but come over switched off with no URL — tell the user to add their own link and turn them back on. Pass title to override the template title. After creation you can adjust it with update_form / update_question etc. This is the fastest way to build a quiz when a suitable template exists — prefer it over building from scratch with create_form. Not idempotent: if the call times out it may still have succeeded, so retrying blindly can create a duplicate — check first, then retry only if it is really missing.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -2384,7 +2331,7 @@
     {
       "name": "add_question",
       "title": "Add question",
-      "description": "Append an item to the end of a form: a question, a page break (Breaker — only formId + type are needed, other fields are ignored) or a display block (Statement / Swiper). Item fields, their per-type / per-scene rules and the question types themselves are exactly those of create_form questions[] — read the full field descriptions there. Configure random_knowledge_quiz question banks in the web app. Limit: a quiz holds at most 50 questions on every plan (page breaks, statements and carousels do not count; a random-question slot counts as its draw count). An ai_quiz holds at most 20. Not idempotent: if the call times out it may still have succeeded, so retrying blindly can create a duplicate — check first, then retry only if it is really missing.",
+      "description": "Append an item to the end of a form: a question, a page break (Breaker — only formId + type are needed, other fields are ignored) or a display block (Statement / Swiper). Item fields, their per-type / per-scene rules and the question types themselves are exactly those of create_form questions[] — read the full field descriptions there. Limit: a quiz holds at most 50 questions on every plan (page breaks, statements and carousels do not count). An ai_quiz holds at most 20. Not idempotent: if the call times out it may still have succeeded, so retrying blindly can create a duplicate — check first, then retry only if it is really missing.",
       "inputSchema": {
         "type": "object",
         "description": "Item fields, their per-type / per-scene rules and the question types themselves are exactly those of create_form questions[] — read the full field descriptions there.",
@@ -2400,12 +2347,9 @@
               "MultiCheck",
               "TrueFalse",
               "FillBlank",
-              "DateField",
-              "TimeField",
               "NumberField",
               "Rate",
               "DropDown",
-              "Cascade",
               "Ordering",
               "Attachment",
               "Breaker",
@@ -2438,18 +2382,6 @@
           "required": {
             "type": "boolean",
             "description": "Same as create_form questions[].required."
-          },
-          "precision": {
-            "type": "string",
-            "enum": [
-              "year",
-              "month",
-              "day",
-              "hour",
-              "minute",
-              "second"
-            ],
-            "description": "Same as create_form questions[].precision."
           },
           "min": {
             "type": "number",
@@ -2484,6 +2416,14 @@
             },
             "maxItems": 5,
             "description": "Same as create_form questions[].words."
+          },
+          "rateStyle": {
+            "type": "string",
+            "enum": [
+              "star",
+              "number"
+            ],
+            "description": "Same as create_form questions[].rateStyle."
           },
           "choices": {
             "type": "array",
@@ -2536,130 +2476,6 @@
                     "type": "number",
                     "minimum": 0,
                     "maximum": 100
-                  }
-                },
-                "children": {
-                  "type": "array",
-                  "minItems": 1,
-                  "maxItems": 100,
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "label": {
-                        "type": "string"
-                      },
-                      "code": {
-                        "type": "string",
-                        "maxLength": 64
-                      },
-                      "score": {
-                        "type": "number",
-                        "minimum": 0,
-                        "maximum": 100
-                      },
-                      "outcomes": {
-                        "type": "array",
-                        "items": {
-                          "anyOf": [
-                            {
-                              "type": "string"
-                            },
-                            {
-                              "type": "object",
-                              "properties": {
-                                "code": {
-                                  "type": "string"
-                                },
-                                "weight": {
-                                  "type": "number",
-                                  "minimum": 0,
-                                  "maximum": 100
-                                }
-                              },
-                              "required": [
-                                "code"
-                              ],
-                              "additionalProperties": false
-                            }
-                          ]
-                        },
-                        "maxItems": 50
-                      },
-                      "dimensionScores": {
-                        "type": "object",
-                        "additionalProperties": {
-                          "type": "number",
-                          "minimum": 0,
-                          "maximum": 100
-                        }
-                      },
-                      "children": {
-                        "type": "array",
-                        "minItems": 1,
-                        "maxItems": 100,
-                        "items": {
-                          "type": "object",
-                          "properties": {
-                            "label": {
-                              "type": "string"
-                            },
-                            "code": {
-                              "type": "string",
-                              "maxLength": 64
-                            },
-                            "score": {
-                              "type": "number",
-                              "minimum": 0,
-                              "maximum": 100
-                            },
-                            "outcomes": {
-                              "type": "array",
-                              "items": {
-                                "anyOf": [
-                                  {
-                                    "type": "string"
-                                  },
-                                  {
-                                    "type": "object",
-                                    "properties": {
-                                      "code": {
-                                        "type": "string"
-                                      },
-                                      "weight": {
-                                        "type": "number",
-                                        "minimum": 0,
-                                        "maximum": 100
-                                      }
-                                    },
-                                    "required": [
-                                      "code"
-                                    ],
-                                    "additionalProperties": false
-                                  }
-                                ]
-                              },
-                              "maxItems": 50
-                            },
-                            "dimensionScores": {
-                              "type": "object",
-                              "additionalProperties": {
-                                "type": "number",
-                                "minimum": 0,
-                                "maximum": 100
-                              }
-                            }
-                          },
-                          "required": [
-                            "label"
-                          ],
-                          "additionalProperties": false
-                        }
-                      }
-                    },
-                    "required": [
-                      "label"
-                    ],
-                    "additionalProperties": false
                   }
                 }
               },
@@ -2927,7 +2743,7 @@
     {
       "name": "insert_question",
       "title": "Insert question",
-      "description": "Insert an item at a specific position: a question, a page break (Breaker) or a display block (Statement with `content` / Swiper with `items`). Use after / before to reference an existing field code (from get_form's field.code). To insert at the very front: before references the first field's code. To insert at the end, use add_question. Item fields, their per-type / per-scene rules and the question types themselves are exactly those of create_form questions[] — read the full field descriptions there. Limit: a quiz holds at most 50 questions on every plan (page breaks, statements and carousels do not count; a random-question slot counts as its draw count). An ai_quiz holds at most 20. Not idempotent: if the call times out it may still have succeeded, so retrying blindly can create a duplicate — check first, then retry only if it is really missing.",
+      "description": "Insert an item at a specific position: a question, a page break (Breaker) or a display block (Statement with `content` / Swiper with `items`). Use after / before to reference an existing field code (from get_form's field.code). To insert at the very front: before references the first field's code. To insert at the end, use add_question. Item fields, their per-type / per-scene rules and the question types themselves are exactly those of create_form questions[] — read the full field descriptions there. Limit: a quiz holds at most 50 questions on every plan (page breaks, statements and carousels do not count). An ai_quiz holds at most 20. Not idempotent: if the call times out it may still have succeeded, so retrying blindly can create a duplicate — check first, then retry only if it is really missing.",
       "inputSchema": {
         "type": "object",
         "description": "Item fields, their per-type / per-scene rules and the question types themselves are exactly those of create_form questions[] — read the full field descriptions there.",
@@ -2951,12 +2767,9 @@
               "MultiCheck",
               "TrueFalse",
               "FillBlank",
-              "DateField",
-              "TimeField",
               "NumberField",
               "Rate",
               "DropDown",
-              "Cascade",
               "Ordering",
               "Attachment",
               "Breaker",
@@ -2989,18 +2802,6 @@
           "required": {
             "type": "boolean",
             "description": "Same as create_form questions[].required."
-          },
-          "precision": {
-            "type": "string",
-            "enum": [
-              "year",
-              "month",
-              "day",
-              "hour",
-              "minute",
-              "second"
-            ],
-            "description": "Same as create_form questions[].precision."
           },
           "min": {
             "type": "number",
@@ -3035,6 +2836,14 @@
             },
             "maxItems": 5,
             "description": "Same as create_form questions[].words."
+          },
+          "rateStyle": {
+            "type": "string",
+            "enum": [
+              "star",
+              "number"
+            ],
+            "description": "Same as create_form questions[].rateStyle."
           },
           "choices": {
             "type": "array",
@@ -3087,130 +2896,6 @@
                     "type": "number",
                     "minimum": 0,
                     "maximum": 100
-                  }
-                },
-                "children": {
-                  "type": "array",
-                  "minItems": 1,
-                  "maxItems": 100,
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "label": {
-                        "type": "string"
-                      },
-                      "code": {
-                        "type": "string",
-                        "maxLength": 64
-                      },
-                      "score": {
-                        "type": "number",
-                        "minimum": 0,
-                        "maximum": 100
-                      },
-                      "outcomes": {
-                        "type": "array",
-                        "items": {
-                          "anyOf": [
-                            {
-                              "type": "string"
-                            },
-                            {
-                              "type": "object",
-                              "properties": {
-                                "code": {
-                                  "type": "string"
-                                },
-                                "weight": {
-                                  "type": "number",
-                                  "minimum": 0,
-                                  "maximum": 100
-                                }
-                              },
-                              "required": [
-                                "code"
-                              ],
-                              "additionalProperties": false
-                            }
-                          ]
-                        },
-                        "maxItems": 50
-                      },
-                      "dimensionScores": {
-                        "type": "object",
-                        "additionalProperties": {
-                          "type": "number",
-                          "minimum": 0,
-                          "maximum": 100
-                        }
-                      },
-                      "children": {
-                        "type": "array",
-                        "minItems": 1,
-                        "maxItems": 100,
-                        "items": {
-                          "type": "object",
-                          "properties": {
-                            "label": {
-                              "type": "string"
-                            },
-                            "code": {
-                              "type": "string",
-                              "maxLength": 64
-                            },
-                            "score": {
-                              "type": "number",
-                              "minimum": 0,
-                              "maximum": 100
-                            },
-                            "outcomes": {
-                              "type": "array",
-                              "items": {
-                                "anyOf": [
-                                  {
-                                    "type": "string"
-                                  },
-                                  {
-                                    "type": "object",
-                                    "properties": {
-                                      "code": {
-                                        "type": "string"
-                                      },
-                                      "weight": {
-                                        "type": "number",
-                                        "minimum": 0,
-                                        "maximum": 100
-                                      }
-                                    },
-                                    "required": [
-                                      "code"
-                                    ],
-                                    "additionalProperties": false
-                                  }
-                                ]
-                              },
-                              "maxItems": 50
-                            },
-                            "dimensionScores": {
-                              "type": "object",
-                              "additionalProperties": {
-                                "type": "number",
-                                "minimum": 0,
-                                "maximum": 100
-                              }
-                            }
-                          },
-                          "required": [
-                            "label"
-                          ],
-                          "additionalProperties": false
-                        }
-                      }
-                    },
-                    "required": [
-                      "label"
-                    ],
-                    "additionalProperties": false
                   }
                 }
               },
@@ -3573,7 +3258,7 @@
     {
       "name": "update_question",
       "title": "Update question",
-      "description": "Update a single question of an existing form, located by code. Changeable: name / description / explain / required / score / correctAnswer / aiMatch (FillBlank AI grading) / precision (DateField/TimeField picker precision) / min / max / unit / decimalPlaces (NumberField) / words (Rate scale labels) / maxFiles (Attachment) / choices (replaces ALL choices of a choice-based question). NOT changeable — delete_question then add_question instead: question type, Rate steps, DropDown multiple, Ordering shuffle, Attachment kind. DateField / TimeField / Rate reject score / correctAnswer / aiMatch (configure date/time scoring in the web app). The scored_quiz, outcome_quiz and ai_quiz scenes reject the top-level score / correctAnswer / aiMatch as well: pass choices carrying choices[i].score or choices[i].outcomes instead (TrueFalse outcome votes still need delete + recreate). Display blocks are edited here too, with their own keys: Statement takes content, Swiper takes items (replacing all slides), and both take name / description — every question key is rejected on them.",
+      "description": "Update a single question of an existing form, located by code. Changeable: name / description / explain / required / score / correctAnswer / aiMatch (FillBlank AI grading) / min / max / unit / decimalPlaces (NumberField) / words (Rate scale labels) / maxFiles (Attachment) / choices (replaces ALL choices of a choice-based question). NOT changeable — delete_question then add_question instead: question type, Rate steps, DropDown multiple, Ordering shuffle, Attachment kind. Rate rejects score / correctAnswer / aiMatch. The scored_quiz, outcome_quiz and ai_quiz scenes reject the top-level score / correctAnswer / aiMatch as well: pass choices carrying choices[i].score or choices[i].outcomes instead (TrueFalse outcome votes still need delete + recreate). Display blocks are edited here too, with their own keys: Statement takes content, Swiper takes items (replacing all slides), and both take name / description — every question key is rejected on them.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -3649,18 +3334,6 @@
             "maxLength": 100,
             "description": "TrueFalse only: new custom display text for the \"false\" option; pass an empty string to clear and fall back to the localized default. Ignored for other question types."
           },
-          "precision": {
-            "type": "string",
-            "enum": [
-              "year",
-              "month",
-              "day",
-              "hour",
-              "minute",
-              "second"
-            ],
-            "description": "DateField / TimeField only: new picker precision. DateField accepts year | month | day | hour | minute; TimeField accepts only minute | second. Ignored for other question types."
-          },
           "min": {
             "anyOf": [
               {
@@ -3724,6 +3397,21 @@
             ],
             "description": "Rate only: new scale labels shown under the rating control (up to 5); pass null or [] to remove the labels. Ignored for other question types."
           },
+          "rateStyle": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "star",
+                  "number"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Rate only: new look of the rating control — \"star\" or \"number\" (numbered circles); pass null to reset to the default star. Display only, collected ratings are unaffected. Ignored for other question types."
+          },
           "maxFiles": {
             "anyOf": [
               {
@@ -3756,7 +3444,7 @@
                   "type": "number",
                   "minimum": 0,
                   "maximum": 100,
-                  "description": "Used only in the scored_quiz scene; the score added when this choice is selected (generates partialScoring). For Cascade every node on the submitted path adds its score. Ignored in the knowledge_quiz scene; rejected in the outcome_quiz scene."
+                  "description": "Used only in the scored_quiz scene; the score added when this choice is selected (generates partialScoring). Ignored in the knowledge_quiz scene; rejected in the outcome_quiz scene."
                 },
                 "outcomes": {
                   "type": "array",
@@ -3797,146 +3485,6 @@
                     "maximum": 100
                   },
                   "description": "scored_quiz scene only: the points this choice adds to each dimension when selected, as a map of dimension code → score, e.g. { \"dim_d\": 3, \"dim_i\": 1 }. Each entry overrides this choice's score for that one dimension; a dimension not listed falls back to the plain choice `score`, and an explicit 0 really counts 0. Dimension scores still come only from each dimension's required formula: inside it `{{q}}` is the sum of the selected choices' override-or-score for that dimension, and a question the formula does not reference adds nothing. Codes must exist in report.dimensionAnalysis.dimensions — give dimensions[].code and reference them in the same create_form call. `score` remains the overall score (summed by default, or fed to report.formula when set). Rejected in the knowledge_quiz / outcome_quiz scenes."
-                },
-                "children": {
-                  "type": "array",
-                  "minItems": 1,
-                  "maxItems": 100,
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "label": {
-                        "type": "string",
-                        "description": "Display text of the choice"
-                      },
-                      "code": {
-                        "type": "string",
-                        "maxLength": 64,
-                        "description": "Optional stable identifier for this choice (option code). Omit to auto-generate. Same identifier rules as the question code; must be unique among the choices of this question. correctAnswer may reference a choice by its label or its code."
-                      },
-                      "score": {
-                        "type": "number",
-                        "minimum": 0,
-                        "maximum": 100,
-                        "description": "Used only in the scored_quiz scene; the score added when this choice is selected (generates partialScoring). For Cascade every node on the submitted path adds its score. Ignored in the knowledge_quiz scene; rejected in the outcome_quiz scene."
-                      },
-                      "outcomes": {
-                        "type": "array",
-                        "items": {
-                          "anyOf": [
-                            {
-                              "type": "string"
-                            },
-                            {
-                              "type": "object",
-                              "properties": {
-                                "code": {
-                                  "type": "string",
-                                  "description": "Outcome code from report.outcomes"
-                                },
-                                "weight": {
-                                  "type": "number",
-                                  "minimum": 0,
-                                  "maximum": 100,
-                                  "description": "Votes this pick casts for the outcome; omit for 1. Decimals allowed, 0 = counts for nothing."
-                                }
-                              },
-                              "required": [
-                                "code"
-                              ],
-                              "additionalProperties": false
-                            }
-                          ]
-                        },
-                        "maxItems": 50,
-                        "description": "Outcome scene only, and required there on every choice: the outcomes this choice votes for when selected (each code must exist in report.outcomes; a choice may vote for multiple outcomes). Use [] for a neutral choice that votes for nothing. Rejected in the knowledge_quiz / scored_quiz scenes. Each item is an outcome code (one vote) or { code, weight } to make this pick count more or less — e.g. { \"code\": \"lion\", \"weight\": 2 } for a question that should decide the result more than the others. The outcome with the most total votes wins."
-                      },
-                      "dimensionScores": {
-                        "type": "object",
-                        "additionalProperties": {
-                          "type": "number",
-                          "minimum": 0,
-                          "maximum": 100
-                        },
-                        "description": "scored_quiz scene only: the points this choice adds to each dimension when selected, as a map of dimension code → score, e.g. { \"dim_d\": 3, \"dim_i\": 1 }. Each entry overrides this choice's score for that one dimension; a dimension not listed falls back to the plain choice `score`, and an explicit 0 really counts 0. Dimension scores still come only from each dimension's required formula: inside it `{{q}}` is the sum of the selected choices' override-or-score for that dimension, and a question the formula does not reference adds nothing. Codes must exist in report.dimensionAnalysis.dimensions — give dimensions[].code and reference them in the same create_form call. `score` remains the overall score (summed by default, or fed to report.formula when set). Rejected in the knowledge_quiz / outcome_quiz scenes."
-                      },
-                      "children": {
-                        "type": "array",
-                        "minItems": 1,
-                        "maxItems": 100,
-                        "items": {
-                          "type": "object",
-                          "properties": {
-                            "label": {
-                              "type": "string",
-                              "description": "Display text of the choice"
-                            },
-                            "code": {
-                              "type": "string",
-                              "maxLength": 64,
-                              "description": "Optional stable identifier for this choice (option code). Omit to auto-generate. Same identifier rules as the question code; must be unique among the choices of this question. correctAnswer may reference a choice by its label or its code."
-                            },
-                            "score": {
-                              "type": "number",
-                              "minimum": 0,
-                              "maximum": 100,
-                              "description": "Used only in the scored_quiz scene; the score added when this choice is selected (generates partialScoring). For Cascade every node on the submitted path adds its score. Ignored in the knowledge_quiz scene; rejected in the outcome_quiz scene."
-                            },
-                            "outcomes": {
-                              "type": "array",
-                              "items": {
-                                "anyOf": [
-                                  {
-                                    "type": "string"
-                                  },
-                                  {
-                                    "type": "object",
-                                    "properties": {
-                                      "code": {
-                                        "type": "string",
-                                        "description": "Outcome code from report.outcomes"
-                                      },
-                                      "weight": {
-                                        "type": "number",
-                                        "minimum": 0,
-                                        "maximum": 100,
-                                        "description": "Votes this pick casts for the outcome; omit for 1. Decimals allowed, 0 = counts for nothing."
-                                      }
-                                    },
-                                    "required": [
-                                      "code"
-                                    ],
-                                    "additionalProperties": false
-                                  }
-                                ]
-                              },
-                              "maxItems": 50,
-                              "description": "Outcome scene only, and required there on every choice: the outcomes this choice votes for when selected (each code must exist in report.outcomes; a choice may vote for multiple outcomes). Use [] for a neutral choice that votes for nothing. Rejected in the knowledge_quiz / scored_quiz scenes. Each item is an outcome code (one vote) or { code, weight } to make this pick count more or less — e.g. { \"code\": \"lion\", \"weight\": 2 } for a question that should decide the result more than the others. The outcome with the most total votes wins."
-                            },
-                            "dimensionScores": {
-                              "type": "object",
-                              "additionalProperties": {
-                                "type": "number",
-                                "minimum": 0,
-                                "maximum": 100
-                              },
-                              "description": "scored_quiz scene only: the points this choice adds to each dimension when selected, as a map of dimension code → score, e.g. { \"dim_d\": 3, \"dim_i\": 1 }. Each entry overrides this choice's score for that one dimension; a dimension not listed falls back to the plain choice `score`, and an explicit 0 really counts 0. Dimension scores still come only from each dimension's required formula: inside it `{{q}}` is the sum of the selected choices' override-or-score for that dimension, and a question the formula does not reference adds nothing. Codes must exist in report.dimensionAnalysis.dimensions — give dimensions[].code and reference them in the same create_form call. `score` remains the overall score (summed by default, or fed to report.formula when set). Rejected in the knowledge_quiz / outcome_quiz scenes."
-                            }
-                          },
-                          "required": [
-                            "label"
-                          ],
-                          "additionalProperties": false
-                        },
-                        "description": "Cascade only: child options of this node (nesting up to 3 levels in total). Rejected for other question types."
-                      }
-                    },
-                    "required": [
-                      "label"
-                    ],
-                    "additionalProperties": false
-                  },
-                  "description": "Cascade only: child options of this node (nesting up to 3 levels in total). Rejected for other question types."
                 }
               },
               "required": [
@@ -3944,7 +3492,7 @@
               ],
               "additionalProperties": false
             },
-            "description": "Replace ALL choices of a choice-based question (SingleCheck / MultiCheck / DropDown / Ordering / Cascade; rejected for other types). To keep an existing choice's identity (so past answers still match it) pass its current code from get_form; entries without a code get a new auto-generated code. knowledge_quiz scene: if the existing correctAnswer references a code missing from the new choices, pass a new correctAnswer in the same call. scored_quiz scene: set choices[i].score to rebuild Option Scoring (required if the question currently has Option Scoring). outcome_quiz scene: every choice must carry an outcomes vote list (use [] for a neutral choice)."
+            "description": "Replace ALL choices of a choice-based question (SingleCheck / MultiCheck / DropDown / Ordering; rejected for other types). To keep an existing choice's identity (so past answers still match it) pass its current code from get_form; entries without a code get a new auto-generated code. knowledge_quiz scene: if the existing correctAnswer references a code missing from the new choices, pass a new correctAnswer in the same call. scored_quiz scene: set choices[i].score to rebuild Option Scoring (required if the question currently has Option Scoring). outcome_quiz scene: every choice must carry an outcomes vote list (use [] for a neutral choice)."
           },
           "score": {
             "type": "number",
@@ -3974,7 +3522,7 @@
                 "description": "NumberField: a finite number, matched exactly."
               }
             ],
-            "description": "New correct answer; the shape follows the question type — see the anyOf branches. Choices are referenced by label or code (use the code when the same label repeats), and they must exist in the question's current choices, or in the `choices` replacement passed in this same call. NumberField answers must stay typeable within min / max and decimalPlaces. Rejected for DateField / TimeField / Rate, and in the scored_quiz / outcome_quiz scenes."
+            "description": "New correct answer; the shape follows the question type — see the anyOf branches. Choices are referenced by label or code (use the code when the same label repeats), and they must exist in the question's current choices, or in the `choices` replacement passed in this same call. NumberField answers must stay typeable within min / max and decimalPlaces. Rejected for Rate, and in the scored_quiz / outcome_quiz scenes."
           },
           "aiMatch": {
             "anyOf": [
@@ -4152,7 +3700,7 @@
     {
       "name": "set_dimension_analysis",
       "title": "Set dimension analysis",
-      "description": "Set the multi-dimension analysis (form.report.dimensionAnalysis) of a form, replacing the dimension list without touching overallAnalysis (title / radar settings you omit are kept). Dimension codes are stable: pass dimensions[].code to keep or set one, or omit it and a dimension with the same name keeps its existing code. Only scored_quiz forms have dimensions; every dimension needs a formula over question codes (e.g. `{{q1}} + {{q2}}`), where a question's choices[i].dimensionScores override its plain choice score for that dimension. A dimension still referenced by a question's dimensionScores or by report.formula (the overall formula) cannot be removed. Pass an empty dimensions array to clear the multi-dimension analysis. Call get_form first to read the question and dimension codes. Not supported for knowledge_quiz / random_knowledge_quiz / outcome_quiz / ai_quiz forms.",
+      "description": "Set the multi-dimension analysis (form.report.dimensionAnalysis) of a form, replacing the dimension list without touching overallAnalysis (title / radar settings you omit are kept). Dimension codes are stable: pass dimensions[].code to keep or set one, or omit it and a dimension with the same name keeps its existing code. Only scored_quiz forms have dimensions; every dimension needs a formula over question codes (e.g. `{{q1}} + {{q2}}`), where a question's choices[i].dimensionScores override its plain choice score for that dimension. A dimension still referenced by a question's dimensionScores or by report.formula (the overall formula) cannot be removed. Pass an empty dimensions array to clear the multi-dimension analysis. Call get_form first to read the question and dimension codes. Not supported for knowledge_quiz / outcome_quiz / ai_quiz forms.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -5132,6 +4680,17 @@
                   }
                 },
                 "additionalProperties": true
+              },
+              "cta": {
+                "type": "object",
+                "description": "Default CTA (shown for results without a CTA of their own): only the button text is translated.",
+                "properties": {
+                  "text": {
+                    "type": "string",
+                    "description": "Translated default CTA button text."
+                  }
+                },
+                "additionalProperties": true
               }
             },
             "additionalProperties": true
@@ -5367,14 +4926,6 @@
             "type": "string",
             "description": "Fuzzy match by email or name, optional",
             "maxLength": 200
-          },
-          "status": {
-            "type": "string",
-            "enum": [
-              "active",
-              "disabled"
-            ],
-            "description": "Filter by status, optional"
           }
         },
         "additionalProperties": false
@@ -5415,13 +4966,6 @@
                     "null"
                   ],
                   "description": "Masked name (J*n)"
-                },
-                "status": {
-                  "type": [
-                    "string",
-                    "null"
-                  ],
-                  "description": "Account status"
                 },
                 "emailVerified": {
                   "type": [
@@ -5508,13 +5052,6 @@
               "null"
             ],
             "description": "Masked name (J*n)"
-          },
-          "status": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "description": "Account status"
           },
           "emailVerified": {
             "type": [
@@ -6326,7 +5863,7 @@
     {
       "name": "get_active_tenant",
       "title": "Get active team",
-      "description": "Return the team (tenant) this token is currently operating against. All write tools default to this team. Also reports examineeSignupDisabled: when true this team has switched respondent self-signup off, so only respondents already on its roster can sign in — every quiz that asks for a login at the report gate (submissionAccess login_to_view_report) turns away anyone new. Check it before blaming a quiz for \"nobody can submit\".",
+      "description": "Return the team (tenant) this token is currently operating against. All write tools default to this team.",
       "inputSchema": {
         "type": "object",
         "properties": {},
@@ -6353,10 +5890,6 @@
               "null"
             ],
             "description": "Your role in this team"
-          },
-          "examineeSignupDisabled": {
-            "type": "boolean",
-            "description": "true = respondent self-signup is off for this team, so any quiz that asks for a login turns away respondents who are not on the roster yet"
           }
         }
       },
@@ -6447,7 +5980,7 @@
     {
       "name": "invite_member",
       "title": "Invite member",
-      "description": "Invite someone to the active team (tenant) by email. The pending membership is created immediately and an invitation email with a join link is queued for delivery; the link and its token are never returned in the tool result. Only the team owner or an admin can invite; the call is rejected for other roles. role defaults to \"member\" and may be \"viewer\" (read-only) or \"admin\". You cannot invite someone as the owner. Fails if the email is already a member or already has a pending invite, or if the team has hit its member limit. Operates on the team this token currently targets — use list_my_tenants / switch_active_tenant to change teams first.",
+      "description": "Invite someone to the active team (tenant) by email. The pending membership is created immediately and an invitation email with a join link is queued for delivery; the link and its token are never returned in the tool result. Only the team owner or an admin can invite; the call is rejected for other roles. role defaults to \"member\" and may be \"admin\". Members can create and edit every form, response, respondent and lead of the team; admins also manage members and team settings. You cannot invite someone as the owner. Fails if the email is already a member or already has a pending invite, or if the team has hit its member limit. Operates on the team this token currently targets — use list_my_tenants / switch_active_tenant to change teams first.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -6459,10 +5992,9 @@
           },
           "role": {
             "type": "string",
-            "description": "Role to grant. Defaults to \"member\": \"viewer\" is read-only, \"admin\" manages the whole team. Cannot be \"owner\".",
+            "description": "Role to grant. Defaults to \"member\"; \"admin\" also manages members and team settings. Cannot be \"owner\".",
             "enum": [
               "member",
-              "viewer",
               "admin"
             ]
           }
@@ -6975,7 +6507,7 @@
                 }
               }
             },
-            "description": "Active non-viewer members a lead can be assigned to"
+            "description": "Active members a lead can be assigned to"
           }
         }
       },
@@ -7070,7 +6602,7 @@
     {
       "name": "assign_leads",
       "title": "Assign leads",
-      "description": "Assign one or more leads of the current team to a member, or clear the assignee. Pass every lead id in a single call (up to 50) — do not loop one call per lead. The assignee must be an active non-viewer member (see list_lead_settings.assignableMembers); pass \"me\" for yourself, or omit / null to unassign. Each actual change is recorded on the lead's timeline. When assigning, the assignee gets one aggregated in-app notification and, if enabled in their notification preferences, one email for the whole batch; assigning the same owner again does not notify them again.",
+      "description": "Assign one or more leads of the current team to a member, or clear the assignee. Pass every lead id in a single call (up to 50) — do not loop one call per lead. The assignee must be an active member (see list_lead_settings.assignableMembers); pass \"me\" for yourself, or omit / null to unassign. Each actual change is recorded on the lead's timeline. When assigning, the assignee gets one aggregated in-app notification and, if enabled in their notification preferences, one email for the whole batch; assigning the same owner again does not notify them again.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -7441,7 +6973,7 @@
           },
           "delivery": {
             "type": "object",
-            "description": "Delivery state: { isActive, submissionAccess, reportGateRequireCode, timeLimit, sharing, answerSheet, crowdCompare, instantFeedback, hideScores, booking, feedback, allowPdfDownload, hiddenFields, sharedWithAll, searchIndexable }; get_form_share_info adds the team-level examineeSignupDisabled (respondent self-signup off = a login-gated quiz turns away anyone not on the roster)"
+            "description": "Delivery state: { isActive, submissionAccess, reportGateRequireCode, timeLimit, sharing, answerSheet, crowdCompare, instantFeedback, hideScores, booking, feedback, allowPdfDownload, resultRedirect, defaultCta, hiddenFields, searchIndexable }"
           }
         }
       },
@@ -7473,7 +7005,7 @@
     {
       "name": "update_form_settings",
       "title": "Update form settings",
-      "description": "Change how a form of the current team is delivered, as opposed to what it says (use update_form for title / questions / report / theme). Editable: submissionAccess (who may answer and whether seeing the report needs a login — this is the lead-capture gate), reportGateRequireCode (whether that login gate collects an emailed verification code, trading completion rate against lead quality), timeLimit, sharing (the result-page share button and personalised share card, which is what drives organic spread), answerSheet, crowdCompare (show respondents what share of people picked the same option — off by default, not for knowledge quizzes), instantFeedback (knowledge quizzes only, on by default for newly created ones except level tests: respondents submit each page and see right / wrong, the correct answer and the explanation before moving on), hideScores (hide every score respondents see — report, question points, instant feedback and answer review — while keeping levels and right / wrong), booking (the result-page block that opens the team's Cal.com scheduling link; bookings sync back read-only), feedback (a one-question feedback block on the result page), allowPdfDownload (respondents can download their full report as a PDF — Pro), hiddenFields (URL parameters such as partner or campaign_id captured with each response for attribution), sharedWithAll (whether every team member can see this form), searchIndexable (whether search engines may list the quiz), and slug (the custom path that gives the public link a memorable, SEO-friendly address). Only the keys you pass are changed. Read the current values with get_form_share_info.",
+      "description": "Change how a form of the current team is delivered, as opposed to what it says (use update_form for title / questions / report / theme). Editable: submissionAccess (who may answer and whether seeing the report needs a login — this is the lead-capture gate), reportGateRequireCode (whether that login gate collects an emailed verification code, trading completion rate against lead quality), timeLimit, sharing (the result-page share button and personalised share card, which is what drives organic spread), answerSheet, crowdCompare (show respondents what share of people picked the same option — off by default, not for knowledge quizzes), instantFeedback (knowledge quizzes only, on by default for newly created ones except level tests: respondents submit each page and see right / wrong, the correct answer and the explanation before moving on), hideScores (hide every score respondents see — report, question points, instant feedback and answer review — while keeping levels and right / wrong), booking (the result-page block that opens the team's Cal.com scheduling link; bookings sync back read-only), feedback (a one-question feedback block on the result page), allowPdfDownload (respondents can download their full report as a PDF — Pro), resultRedirect (send respondents straight to a link chosen by their score level or outcome after they submit, instead of the result page — Pro), defaultCta (the result-page CTA master switch plus the default button for results without their own), hiddenFields (URL parameters such as partner or campaign_id captured with each response for attribution), searchIndexable (whether search engines may list the quiz), and slug (the custom path that gives the public link a memorable, SEO-friendly address). Only the keys you pass are changed. Read the current values with get_form_share_info.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -7511,7 +7043,7 @@
               "enabled"
             ],
             "additionalProperties": false,
-            "description": "Answer-time countdown. Only knowledge quizzes (knowledge_quiz / random_knowledge_quiz) can turn this on — a countdown makes sense when unanswered means wrong, but rushing a scorecard or a personality quiz just produces careless answers."
+            "description": "Answer-time countdown. Only knowledge quizzes (knowledge_quiz) can turn this on — a countdown makes sense when unanswered means wrong, but rushing a scorecard or a personality quiz just produces careless answers."
           },
           "sharing": {
             "type": "object",
@@ -7563,7 +7095,7 @@
               "enabled"
             ],
             "additionalProperties": false,
-            "description": "Knowledge quizzes only (knowledge_quiz / random_knowledge_quiz). When on, the respondent submits each page on its own and sees whether they were right, the correct answer and the question's explanation; submitted questions lock before they move on, and the last page ends with a \"See results\" button that finishes the quiz. On by default for newly created knowledge quizzes except level tests (useCase level_test); existing quizzes keep whatever they had. Turns the quiz into a learn-as-you-go challenge; it does reveal answers question by question, so leave it off when the score is used for placement."
+            "description": "Knowledge quizzes only (knowledge_quiz). When on, the respondent submits each page on its own and sees whether they were right, the correct answer and the question's explanation; submitted questions lock before they move on, and the last page ends with a \"See results\" button that finishes the quiz. On by default for newly created knowledge quizzes except level tests (useCase level_test); existing quizzes keep whatever they had. Turns the quiz into a learn-as-you-go challenge; it does reveal answers question by question, so leave it off when the score is used for placement."
           },
           "hideScores": {
             "type": "object",
@@ -7576,7 +7108,7 @@
               "enabled"
             ],
             "additionalProperties": false,
-            "description": "Hide every score the respondent sees: the result page's overall score (score ring / number / percentile) and every dimension score, the points badge on each question while answering, the score in instant feedback, and the per-question scores in the answer review. Level names, level descriptions, the summary and right / wrong verdicts stay. The team still sees scores in the dashboard. Scenes with scores only (knowledge_quiz / random_knowledge_quiz / scored_quiz). Note the summary template still renders its score variable if one is left in. Off by default."
+            "description": "Hide every score the respondent sees: the result page's overall score (score ring / number / percentile) and every dimension score, the points badge on each question while answering, the score in instant feedback, and the per-question scores in the answer review. Level names, level descriptions, the summary and right / wrong verdicts stay. The team still sees scores in the dashboard. Scenes with scores only (knowledge_quiz / scored_quiz). Note the summary template still renders its score variable if one is left in. Off by default."
           },
           "booking": {
             "type": "object",
@@ -7686,6 +7218,69 @@
             "type": "boolean",
             "description": "Let respondents download their full report as a PDF. Pro only (switching it on is rejected on the Free plan). Takes effect only on gated quizzes (submissionAccess login_to_view_report) because the download is tied to the signed-in respondent."
           },
+          "resultRedirect": {
+            "type": "object",
+            "properties": {
+              "enabled": {
+                "type": "boolean",
+                "description": "Master switch. Pro only (switching it on is rejected on the Free plan). Not available for ai_quiz."
+              },
+              "defaultUrl": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "maxLength": 2048
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "http(s) fallback link for respondents whose matched level / outcome has no redirectUrl of its own; \"\" or null removes it, and then those respondents see the result page."
+              },
+              "appendParams": {
+                "type": "boolean",
+                "description": "Append score, level, outcome and outcome_name plus the quiz's hidden fields and UTM tags to the link (never emails or other personal details; parameters already in the link are kept)."
+              }
+            },
+            "additionalProperties": false,
+            "description": "Redirect after submission (Pro): respondents go straight to a link instead of the result page — after the login / lead gate if the report has one. The per-result links live on report.levels[i].redirectUrl (knowledge / scored quizzes) and report.outcomes[i].redirectUrl (outcome quizzes), set with update_form. Shared result links and return visits still open the result page. Only the keys you pass change."
+          },
+          "defaultCta": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "text": {
+                    "type": "string",
+                    "maxLength": 30,
+                    "description": "Default button text (give it together with url, or leave both out)"
+                  },
+                  "url": {
+                    "type": "string",
+                    "maxLength": 2048,
+                    "description": "Default button link; http/https only"
+                  },
+                  "label": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "maxLength": 100
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "Optional lead-in line shown above the default button"
+                  }
+                },
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Result-page CTA buttons. This is the master switch: while it is off no result shows a CTA, not even levels / outcomes / AI result tags that have their own. Passing an object turns it on and replaces the default button (text + url), which every result without its own cta uses — pass {} to turn it on with no default, so only results with their own cta show a button. null turns it off and keeps the copy. Per-result buttons are set with update_form (writing one also turns this on). For AI quizzes the button appears below the AI report. Free on every plan."
+          },
           "hiddenFields": {
             "anyOf": [
               {
@@ -7701,10 +7296,6 @@
               }
             ],
             "description": "URL parameters to capture with each response (hidden fields), e.g. [\"partner\", \"campaign_id\"]: opening the quiz link with ?partner=acme stores partner=acme on the record, where it shows in record detail, exports and webhook / Zapier payloads. Lowercase names, up to 10; utm_* and system names (email, name, lang, ref, embed…) are reserved. Replaces the whole list; null or [] clears it."
-          },
-          "sharedWithAll": {
-            "type": "boolean",
-            "description": "Whether every member of the team can see and open this form"
           },
           "searchIndexable": {
             "type": "boolean",
@@ -7744,7 +7335,7 @@
           },
           "delivery": {
             "type": "object",
-            "description": "Delivery state: { isActive, submissionAccess, reportGateRequireCode, timeLimit, sharing, answerSheet, crowdCompare, instantFeedback, hideScores, booking, feedback, allowPdfDownload, hiddenFields, sharedWithAll, searchIndexable }; get_form_share_info adds the team-level examineeSignupDisabled (respondent self-signup off = a login-gated quiz turns away anyone not on the roster)"
+            "description": "Delivery state: { isActive, submissionAccess, reportGateRequireCode, timeLimit, sharing, answerSheet, crowdCompare, instantFeedback, hideScores, booking, feedback, allowPdfDownload, resultRedirect, defaultCta, hiddenFields, searchIndexable }"
           }
         }
       },
